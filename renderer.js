@@ -28,59 +28,33 @@ var errorCallback = function(e) {
   }, errorCallback);
 */
 
-    
-UIkit.upload('.js-upload', {
 
-    url: '',
-    multiple: true,
 
-    beforeSend: function () {
-        console.log('beforeSend', arguments);
-    },
-    beforeAll: function () {
-        console.log('beforeAll', arguments);
-        var fileInfo = arguments[1][0];
-        d3.select('#title').text(fileInfo['name']);
-        d3.select('#videoPlayer').attr('src',fileInfo['path']);
-    },
-    load: function () {
-        console.log('load', arguments);
-    },
-    error: function () {
-        console.log('error', arguments);
-    },
-    complete: function () {
-        console.log('complete', arguments);
-    },
-
-    loadStart: function (e) {
-        console.log('loadStart', arguments);
-
-        bar.removeAttribute('hidden');
-        bar.max = e.total;
-        bar.value = e.loaded;
-    },
-
-    progress: function (e) {
-        console.log('progress', arguments);
-
-        bar.max = e.total;
-        bar.value = e.loaded;
-    },
-
-    loadEnd: function (e) {
-        console.log('loadEnd', arguments);
-
-        bar.max = e.total;
-        bar.value = e.loaded;
-    },
-
-    completeAll: function () {
-        console.log('completeAll', arguments);
-
-        setTimeout(function () {
-            bar.setAttribute('hidden', 'hidden');
-        }, 1000);
-    }
-
+d3.selection().on('drop', function(){
+    d3.event.preventDefault();
+    d3.event.stopPropagation();   
+    var dt = d3.event.dataTransfer;
+    var fileList = dt.files;
+    var firstFile = fileList[0];
+    d3.select('#title').text(firstFile['name']);
+    d3.select('#videoPlayer').attr('src',firstFile['path']);
 });
+
+d3.selection().on('dragover', function(e){
+    d3.event.preventDefault();
+    d3.event.stopPropagation();    
+});
+
+d3.select('#videoPlayer').on('error',function(){
+    var errCode = d3.event.target.error.code;
+    var errMsg = d3.event.target.error.message;
+    var userMsg = '<span class="uk-text-small">video loading error : code = ' + errCode + ' , msg = ' + errMsg + '</span>'; 
+    // error code ref : https://developer.mozilla.org/ko/docs/Web/API/MediaError
+    console.log(userMsg);
+    UIkit.notification({
+        message : userMsg,
+        status : 'primary',
+        pos : 'bottom-left',
+        timeout : 5000
+    })
+})
