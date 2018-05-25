@@ -20,6 +20,7 @@
     "electron": "^2.0.0"
   },
   "dependencies": {
-    "fluent-ffmpeg": "^2.1.2"
+    "fluent-ffmpeg": "^2.1.2",
+    "tracer": "^0.8.15"
   }
 }
