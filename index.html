@@ -21,69 +21,28 @@
 
             <button class="uk-button uk-button-primary uk-width-1-1" id="convert">변환</button>
           </div>
-          <div class="uk-flex uk-flex-column uk-width-1-4">
+          <div class="uk-flex uk-flex-column uk-width-1-4" id="orig">
               <div class="uk-panel uk-panel-scrollable uk-background-default" id="beforePanelStream">
                  변환전 Video 정보
               </div>
-              <p></p>
+              <p>
               <div class="uk-panel uk-panel-scrollable uk-background-default" id="beforePanelFormat">
                  변환전 Format 정보
               </div>
+              <p>
           </div>
-          <div class="uk-flex uk-flex-column uk-width-1-4">
+          <div class="uk-flex uk-flex-column uk-width-1-4" id="conv">
             <div class="uk-panel uk-panel-scrollable uk-background-default" id="afterPanelStream">
               변환후 Video 정보
             </div>
-            <p></p>
+            <p>
             <div class="uk-panel uk-panel-scrollable uk-background-default" id="afterPanelFormat">
               변환후 Format 정보
             </div>
+            <p>
           </div>
 
 
-          <!--
-          <div class="uk-width-1-4">
-            <div class="uk-panel uk-panel-scrollable uk-background-default" id="beforePanel">
-            변환전
-            </div>
-          </div>
-          <div class="uk-width-1-4">
-            <div class="uk-panel uk-panel-scrollable uk-background-default" id="afterPanel">
-            변환후
-            </div>
-          </div>
-           -->
-          <!--
-          <div class="uk-width-1-2">
-
-            <table class="uk-table uk-table-striped uk-table-small uk-text-small">
-                <thead>
-                    <tr>
-                        <th>속성</th>
-                        <th>변환전</th>
-                        <th>변환후</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Table Data</td>
-                        <td>Table Data</td>
-                        <td>Table Data</td>
-                    </tr>
-                    <tr>
-                        <td>Table Data</td>
-                        <td>Table Data</td>
-                        <td>Table Data</td>
-                    </tr>
-                    <tr>
-                        <td>Table Data</td>
-                        <td>Table Data</td>
-                        <td>Table Data</td>
-                    </tr>
-                </tbody>
-            </table>
-          </div>
-        -->
         </div>
         <p></p>
         <div class="uk-panel uk-panel-scrollable" id="msgPanel">
@@ -94,6 +53,11 @@
                <button class="uk-modal-close-default" type="button" uk-close></button>
                <p id="errorMsg"></p>
             </div>
+        </div>  
+
+        <div id="procModal" class="uk-flex-top" uk-modal='{"esc-close":false , "bg-close":false}'>
+          <div id="procModalBody" class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+          </div>
         </div>  
 
       </div>

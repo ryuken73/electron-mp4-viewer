@@ -6,7 +6,8 @@ var UIkit = require('./uikit.min.js');
 var bar = document.getElementById('js-progressbar');
 var ffmpeg = require('fluent-ffmpeg');
 var path = require('path');
-var ffmpegPath = 'C:\\ffmpeg\\bin'
+var ffmpegPath = 'C:\\ffmpeg\\bin';
+var fs = require('fs');
 ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
 
@@ -62,9 +63,11 @@ var logger = tracer.console(
 
 
 d3.selection().on('drop', function(){
+
     d3.event.preventDefault();
     d3.event.stopPropagation();   
 
+    // clear info panels
     var panelArray = [
         d3.select('#beforePanelStream'),
         d3.select('#beforePanelFormat'),
@@ -73,6 +76,9 @@ d3.selection().on('drop', function(){
     ]
 
     clearPanelInfo(panelArray);
+    d3.select('#videoPlayer').attr('from','');
+    d3.selectAll('.panelBtn').remove();
+    //
 
     var dt = d3.event.dataTransfer;
     var fileList = dt.files;
@@ -82,11 +88,22 @@ d3.selection().on('drop', function(){
         return false;
     };
     var firstFile = fileList[0];
+    var fname = firstFile['name'];
+    var fullname = firstFile['path'];
+
+    // set orig div fullname attribute
+    d3.select('#orig').attr('fullname',fullname);
+
     // set title
-    d3.select('#title').text(firstFile['name']);
+    d3.select('#title').text(fname);
     // load video
-    d3.select('#videoPlayer').attr('src',firstFile['path']);
-    // load events
+    d3.select('#videoPlayer').attr('src',fullname);
+
+    // add video tag from : drop , origLoad or convLoad
+    // when "from" attr == drop then getMetaInfo
+    // else skip getMetaInfo
+    d3.select('#videoPlayer').attr('from','drop');
+    // ref : load events
     /*
     loadstart
     durationchange
@@ -105,31 +122,50 @@ d3.selection().on('dragover', function(e){
 
 d3.select('#videoPlayer').on('loadstart',function(){
 
-    var fname = d3.select('#videoPlayer').attr('src');
-    logger.info('media ready: %s', fname );
-    showModal('메타정보 추출중...');
+    var fullname = d3.select('#videoPlayer').attr('src');
+    logger.info('media ready: %s', fullname );
+    if(d3.select(this).attr('from') === 'drop'){
+        showModal('메타정보 추출중...');
+        getMeta(fullname,function(streamInfo, formatInfo){        
+            hideModal('메타정보 추출완료');
+            logger.info(streamInfo);
+            logger.info(formatInfo);
+
+            var beforePanelElement = d3.select('#beforePanelStream');
+            var beforeformatElement = d3.select('#beforePanelFormat');
+
+            putPanelInfo(beforePanelElement, streamInfo);
+            putPanelInfo(beforeformatElement, formatInfo);        
+
+            var origDiv = d3.select('#orig');
+            addLoadBtn(origDiv, 'orig');
+
+        })    
+    }
+
+})
+
+function getMeta(fname,callback){
     ffmpeg.ffprobe(fname, function(err,metadata){
         if(err){
             logger.error(err);
             return false
         }
-        hideModal('메타정보 추출완료');
-        var streamInfo = metadata.streams;
-        var formatInfo = metadata.format;
-        var streamInfoArray1 = JSON.stringify(streamInfo[0]).split(',');
-        var streamInfoArray2 = JSON.stringify(streamInfo[1]).split(',');
+
+        var streamInfo = metadata.streams ? metadata.streams : {'streamInfo':'none',};
+        var formatInfo = metadata.format ? metadata.format : {'formatInfo':'none',};
+        var streamInfoArray1 = JSON.stringify(streamInfo[0]).split(',');  
         var formatInfoArray = JSON.stringify(formatInfo).split(',');
+        if(formatInfo.nb_streams == 2){
+            var streamInfoArray2 = JSON.stringify(streamInfo[1]).split(',');
+        }
+        
         logger.info(streamInfo);
         logger.info(formatInfoArray);
 
-        var beforePanelElement = d3.select('#beforePanelStream');
-        var beforeformatElement = d3.select('#beforePanelFormat');
-
-        putPanelInfo(beforePanelElement, streamInfoArray1);
-        putPanelInfo(beforeformatElement, formatInfoArray);
-
+        callback(streamInfoArray1,formatInfoArray);
     })
-})
+}
 
 d3.select('#videoPlayer').on('error',function(){
     var errCode = d3.event.target.error.code;
@@ -152,9 +188,107 @@ d3.select('#videoPlayer').on('error',function(){
 
 
 d3.select("#convert").on('click',function(){
-    console.log('clicked');
-    logger('clicked');
+
+    d3.select('#progressBody').remove();
+
+    d3.select('#procModalBody')
+    .append('p')
+    .attr('id','progressBody')
+    .text('Convert Processing ')
+    .append('span')
+    .attr('id','progress')
+
+    d3.select('#procModalBody')
+    .select('p')     
+    .append('span')
+    .append('button')
+    .attr('id','cancel')
+    .classed('uk-button',true)
+    .classed('uk-button-small',true)
+    .classed('uk-button-primary',true)
+    .classed('uk-position-center-right',true)
+    .classed('uk-position-medium', true)
+    .text('변환취소')
+
+
+
+
+    //var proc = UIkit.modal.dialog('<p id="modalProgress" class="uk-modal-body">Convert Processing <span id="progress"></span><span><button class="uk-button uk-button-primary uk-button-small" id="cancel">취소</button></span></p>');
+    
+    var now = new Date();
+    var origFname = d3.select('#videoPlayer').attr('src');
+    var origPath = path.dirname(origFname);
+    var origExtn = path.extname(origFname);
+    var origBase = path.basename(origFname,origExtn);
+    var convBase = origBase + '_' + now.getTime();
+    var convFname = path.join(origPath,convBase) + origExtn;
+    logger.info('convert start : %s', origFname);
+    var command = ffmpeg(origFname)
+        .videoCodec('libx264')
+        .on('start', function(commandLine) {
+            UIkit.modal('#procModal').show()
+            logger.info('Spawned Ffmpeg with command: ' + commandLine);
+            d3.select('button.load-conv').remove();
+            d3.select('#afterPanelStream').text('변환후 Video 정보');
+            d3.select('#afterPanelFormat').text('변환후 Format 정보')
+            d3.select('#cancel').on('click', function(){
+                d3.select('#modalProgress').text('취소중..');
+                command.kill();
+            })
+        })
+        .on('progress', function(progress) {
+            logger.info('Processing: ' + progress.percent + '% done');
+            d3.select('#progress').text(' : ' + progress.percent.toFixed(2) + '% ');
+        })
+        .on('stderr', function(stderrLine) {
+            logger.error('Stderr output: ' + stderrLine);
+        })
+        .on('error', function(err, stdout, stderr) {
+            logger.error('Cannot process video: ' + err.message);
+            UIkit.modal('#procModal').hide();
+            fs.unlink(convFname,function(err){
+                if(err) logger.error(err);
+                logger.info('file delete success! : %s', convFname);
+            })
+        })
+        .on('end', function(stdout, stderr) {
+            logger.info('Transcoding succeeded !');
+            //UIkit.modal('#modalProgress').hide();
+            UIkit.modal('#procModal').hide();
+            getMeta(convFname,function(streamInfo, formatInfo){              
+                var beforePanelElement = d3.select('#afterPanelStream');
+                var beforeformatElement = d3.select('#afterPanelFormat');
+        
+                putPanelInfo(beforePanelElement, streamInfo);
+                putPanelInfo(beforeformatElement, formatInfo);
+
+                var convDiv = d3.select('#conv');
+                convDiv.attr('fullname',convFname);
+                addLoadBtn(convDiv,'conv');
+            })     
+        })
+        .save(convFname);
 });
+
+function addLoadBtn(ele, from){
+
+    // load-orig, load-conv
+    var btnClass = 'load-' + from;
+    ele.append('button')
+    .classed('uk-button',true)
+    .classed('uk-button-primary',true)
+    .classed('uk-width-1-1',true)
+    .classed(btnClass,true)
+    .text('Load')
+    .on('click',function(){
+        var fullname = ele.attr('fullname');
+        // set title
+        d3.select('#title').text(fullname);
+        // load video
+        d3.select('#videoPlayer').attr('src',fullname);    
+        d3.select('#videoPlayer').attr('from',from);    
+    })
+}
 
 function clearPanelInfo(elementArray){
     elementArray.forEach(function(ele){
