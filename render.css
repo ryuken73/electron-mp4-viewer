@@ -1,3 +1,9 @@
-.uk-panel {
-    font-size : 11px;
+.uk-panel , #msgPanel {
+    font-size : 12px;
+}
+
+textarea {
+    overflow-y:scroll;
+    height : 100px;
+    resize : none;
 }

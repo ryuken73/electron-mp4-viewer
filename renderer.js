@@ -142,8 +142,10 @@ d3.select('#videoPlayer').on('loadstart',function(){
 
     var fullname = d3.select('#videoPlayer').attr('src');
     logger.info('media ready: %s', fullname );
-    d3.select('#fileMgr')
-    .attr('disabled',null)
+    d3.select('#fileMgr').attr('disabled',null);
+    d3.select('#capture').attr('disabled',null);
+    d3.select('#autocapture').attr('disabled',null);
+
     
     if(d3.select(this).attr('from') === 'drop'){
         showModal('메타정보 추출중...');
@@ -187,6 +189,11 @@ function getMeta(fname,callback){
     })
 }
 
+d3.select('#videoPlayer').on('timeupdate', function(){
+    //logger.info(d3.event.target.currentTime);
+    //logger.info(d3.event.target.duration);
+})
+
 d3.select('#videoPlayer').on('error',function(){
     var errCode = d3.event.target.error.code;
     var errMsg = d3.event.target.error.message;
@@ -211,7 +218,9 @@ d3.select('#fileMgr').on('click', function(){
     shell.showItemInFolder(path.dirname(fullname));
 })
 
-
+d3.select('#capture').on('click', function(){
+    logger.info(d3.select('#videoPlayer').property('currentTime'));
+})
 
 d3.select("#convert").on('click',function(){
 
@@ -277,7 +286,7 @@ d3.select("#convert").on('click',function(){
             d3.select('#progress').text(' : ' + progress.percent.toFixed(2) + '% ');
         })
         .on('stderr', function(stderrLine) {
-            logger.error('Stderr output: ' + stderrLine);
+            logger.info('Stderr output: ' + stderrLine);
         })
         .on('error', function(err, stdout, stderr) {
             logger.error('Cannot process video: ' + err.message);
@@ -352,7 +361,7 @@ function UKlogger(msg){
 
     var msgPanel = d3.select('#msgPanel');
     console.log('height : ' + msgPanel.property('scrollHeight'));
-    d3.select('#msgPanel').scrollTop = msgPanel.property('scrollHeight');
+    d3.select('#msgPanel').property('scrollTop', msgPanel.property('scrollHeight'));
     //msgPanel.scrollTop = msgPanel.scrollHeight;
 
 }
