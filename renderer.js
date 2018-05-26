@@ -8,6 +8,7 @@ var ffmpeg = require('fluent-ffmpeg');
 var path = require('path');
 var ffmpegPath = 'C:\\ffmpeg\\bin';
 var fs = require('fs');
+const {shell} = require('electron');
 ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
 
@@ -28,6 +29,7 @@ var errorCallback = function(e) {
     };
   }, errorCallback);
 */
+
 
 var tracer = require('tracer');
 var logLevel = 'trace';
@@ -61,59 +63,75 @@ var logger = tracer.console(
 			}
 ); 
 
+enableDropOnBody();
 
-d3.selection().on('drop', function(){
+function enableDropOnBody(){
 
-    d3.event.preventDefault();
-    d3.event.stopPropagation();   
+    // attach drop event on body
 
-    // clear info panels
-    var panelArray = [
-        d3.select('#beforePanelStream'),
-        d3.select('#beforePanelFormat'),
-        d3.select('#afterPanelStream'),
-        d3.select('#afterPanelFormat'),
-    ]
+    d3.selection().on('drop', function(){
 
-    clearPanelInfo(panelArray);
-    d3.select('#videoPlayer').attr('from','');
-    d3.selectAll('.panelBtn').remove();
-    //
+        d3.event.preventDefault();
+        d3.event.stopPropagation();   
 
-    var dt = d3.event.dataTransfer;
-    var fileList = dt.files;
-    //TODO : 처음부터 1개파일만 drag / drop 할 수 있게는 ?
-    if(fileList.length > 1){
-        UKalert('1개 파일만 선택해주시기 바랍니다.')
-        return false;
-    };
-    var firstFile = fileList[0];
-    var fname = firstFile['name'];
-    var fullname = firstFile['path'];
+        // clear info panels
+        var panelArray = [
+            d3.select('#beforePanelStream'),
+            d3.select('#beforePanelFormat'),
+            d3.select('#afterPanelStream'),
+            d3.select('#afterPanelFormat'),
+        ]
+        clearPanelInfo(panelArray);
+        //
 
-    // set orig div fullname attribute
-    d3.select('#orig').attr('fullname',fullname);
+        // clear video plaryer from attribute and panelBtn
+        d3.select('#videoPlayer').attr('from','');
+        d3.selectAll('.panelBtn').remove();
+        //
 
-    // set title
-    d3.select('#title').text(fname);
-    // load video
-    d3.select('#videoPlayer').attr('src',fullname);
+        var dt = d3.event.dataTransfer;
+        var fileList = dt.files;
+        //TODO : 처음부터 1개파일만 drag / drop 할 수 있게는 ?
+        if(fileList.length > 1){
+            UKalert('1개 파일만 선택해주시기 바랍니다.')
+            return false;
+        };
+        var firstFile = fileList[0];
+        var fname = firstFile['name'];
+        var fullname = firstFile['path'];
 
-    // add video tag from : drop , origLoad or convLoad
-    // when "from" attr == drop then getMetaInfo
-    // else skip getMetaInfo
-    d3.select('#videoPlayer').attr('from','drop');
-    // ref : load events
-    /*
-    loadstart
-    durationchange
-    loadedmetadata
-    loadeddata
-    progress
-    canplay
-    canplaythrough
-    */
-});
+        // set orig div fullname attribute
+        d3.select('#orig').attr('fullname',fullname);
+
+        // set title
+        d3.select('#title').text(fullname);
+        // load video
+        d3.select('#videoPlayer').attr('src',fullname);
+
+        // add video tag : from == drop , origLoad or convLoad
+        // if "from" attr == drop then getMetaInfo ( new dropped media)
+        // else skip getMetaInfo (from panel load btn, so not need to get media info)
+        d3.select('#videoPlayer').attr('from','drop');
+
+        // ref : load events
+        /*
+        loadstart
+        durationchange
+        loadedmetadata
+        loadeddata
+        progress
+        canplay
+        canplaythrough
+        */
+    });
+}
+
+function disableDropOnBody(){
+    d3.selection().on('drop', function(){
+        d3.event.preventDefault();
+        d3.event.stopPropagation(); 
+    });
+}
 
 d3.selection().on('dragover', function(e){
     d3.event.preventDefault();
@@ -124,6 +142,9 @@ d3.select('#videoPlayer').on('loadstart',function(){
 
     var fullname = d3.select('#videoPlayer').attr('src');
     logger.info('media ready: %s', fullname );
+    d3.select('#fileMgr')
+    .attr('disabled',null)
+    
     if(d3.select(this).attr('from') === 'drop'){
         showModal('메타정보 추출중...');
         getMeta(fullname,function(streamInfo, formatInfo){        
@@ -139,7 +160,6 @@ d3.select('#videoPlayer').on('loadstart',function(){
 
             var origDiv = d3.select('#orig');
             addLoadBtn(origDiv, 'orig');
-
         })    
     }
 
@@ -186,11 +206,19 @@ d3.select('#videoPlayer').on('error',function(){
     */
 })
 
+d3.select('#fileMgr').on('click', function(){
+    var fullname = d3.select('#videoPlayer').attr('src');
+    shell.showItemInFolder(path.dirname(fullname));
+})
+
+
 
 d3.select("#convert").on('click',function(){
 
+    // 변환시작 -> 기존 progress 정보 삭제
     d3.select('#progressBody').remove();
 
+    // progress HTML 생성
     d3.select('#procModalBody')
     .append('p')
     .attr('id','progressBody')
@@ -198,6 +226,7 @@ d3.select("#convert").on('click',function(){
     .append('span')
     .attr('id','progress')
 
+    // progress HTML에 cancel button 추가
     d3.select('#procModalBody')
     .select('p')     
     .append('span')
@@ -209,24 +238,31 @@ d3.select("#convert").on('click',function(){
     .classed('uk-position-center-right',true)
     .classed('uk-position-medium', true)
     .text('변환취소')
-
-
-
-
-    //var proc = UIkit.modal.dialog('<p id="modalProgress" class="uk-modal-body">Convert Processing <span id="progress"></span><span><button class="uk-button uk-button-primary uk-button-small" id="cancel">취소</button></span></p>');
-    
+   
+    // output 파일 postfix를 위한 현재 timestamp 구하기
     var now = new Date();
+
+    // output 파일 fullname 설정
     var origFname = d3.select('#videoPlayer').attr('src');
+    if(!origFname){
+        UKalert('먼저 소스 영상을 drag & drop 하시기 바랍니다.')
+        logger.error('변환 대상 파일 없음!')
+        return false;
+    }
     var origPath = path.dirname(origFname);
     var origExtn = path.extname(origFname);
     var origBase = path.basename(origFname,origExtn);
     var convBase = origBase + '_' + now.getTime();
     var convFname = path.join(origPath,convBase) + origExtn;
+    //
+
     logger.info('convert start : %s', origFname);
+    
     var command = ffmpeg(origFname)
         .videoCodec('libx264')
         .on('start', function(commandLine) {
-            UIkit.modal('#procModal').show()
+            UIkit.modal('#procModal').show();
+            disableDropOnBody();
             logger.info('Spawned Ffmpeg with command: ' + commandLine);
             d3.select('button.load-conv').remove();
             d3.select('#afterPanelStream').text('변환후 Video 정보');
@@ -250,6 +286,7 @@ d3.select("#convert").on('click',function(){
                 if(err) logger.error(err);
                 logger.info('file delete success! : %s', convFname);
             })
+            enableDropOnBody();
         })
         .on('end', function(stdout, stderr) {
             logger.info('Transcoding succeeded !');
@@ -265,7 +302,8 @@ d3.select("#convert").on('click',function(){
                 var convDiv = d3.select('#conv');
                 convDiv.attr('fullname',convFname);
                 addLoadBtn(convDiv,'conv');
-            })     
+            })   
+            enableDropOnBody();  
         })
         .save(convFname);
 });
@@ -278,6 +316,7 @@ function addLoadBtn(ele, from){
     .classed('uk-button',true)
     .classed('uk-button-primary',true)
     .classed('uk-width-1-1',true)
+    .classed('panelBtn', true)
     .classed(btnClass,true)
     .text('Load')
     .on('click',function(){
@@ -312,7 +351,9 @@ function UKlogger(msg){
     .text(msg)
 
     var msgPanel = d3.select('#msgPanel');
-    msgPanel.scrollTop = msgPanel.scrollHeight;
+    console.log('height : ' + msgPanel.property('scrollHeight'));
+    d3.select('#msgPanel').scrollTop = msgPanel.property('scrollHeight');
+    //msgPanel.scrollTop = msgPanel.scrollHeight;
 
 }
 
@@ -342,3 +383,5 @@ function hideModal(msg){
         UIkit.modal('#errorModal').hide();
     },1000)
 }
+
+logger.info('loading done!')
