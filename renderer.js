@@ -220,6 +220,39 @@ d3.select('#fileMgr').on('click', function(){
 
 d3.select('#capture').on('click', function(){
     logger.info(d3.select('#videoPlayer').property('currentTime'));
+    var offset = d3.select('#videoPlayer').property('currentTime')
+    var fullname =  d3.select('#videoPlayer').attr('src');
+    var outPath = path.dirname(fullname);
+    var extn = path.extname(fullname);
+    var base = path.basename(fullname,extn);
+    var outputFile = path.join(outPath,base) + '_' + offset + '.png';
+
+    var command = ffmpeg(fullname)
+    .inputOptions(['-ss ' + offset])
+    .outputOptions(['-vframes 1'])
+    .on('start', function(commandLine) {
+        logger.info('Spawned Ffmpeg with command: ' + commandLine);        
+    })
+    .on('progress', function(progress) {
+        logger.info('Processing: ' + progress.percent + '% done');
+    })
+    .on('stderr', function(stderrLine) {
+        logger.info('Stderr output: ' + stderrLine);
+    })
+    .on('error', function(err, stdout, stderr) {
+        logger.error('Cannot process video: ' + err.message);
+        fs.unlink(outputFile,function(err){
+            if(err) logger.error(err);
+            logger.info('file delete success! : %s', outputFile);
+        })
+    })
+    .on('end', function(stdout, stderr) {
+        logger.info('capture image succeeded !');
+        //UIkit.modal('#modalProgress').hide();
+    })
+    .output(outputFile)
+    .run();
+
 })
 
 d3.select("#convert").on('click',function(){
