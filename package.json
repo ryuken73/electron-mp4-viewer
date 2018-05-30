@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
+    "node-thumbnail": "^0.14.0",
     "tracer": "^0.8.15"
   }
 }

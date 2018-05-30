@@ -8,6 +8,7 @@ var ffmpeg = require('fluent-ffmpeg');
 var path = require('path');
 var ffmpegPath = 'C:\\ffmpeg\\bin';
 var fs = require('fs');
+var thumb = require('node-thumbnail').thumb;
 const {shell} = require('electron');
 ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
@@ -149,7 +150,7 @@ d3.select('#videoPlayer').on('loadstart',function(){
     
     if(d3.select(this).attr('from') === 'drop'){
         showModal('메타정보 추출중...');
-        getMeta(fullname,function(streamInfo, formatInfo){        
+        getMeta(fullname,function(err, streamInfo, formatInfo){        
             hideModal('메타정보 추출완료');
             logger.info(streamInfo);
             logger.info(formatInfo);
@@ -171,7 +172,7 @@ function getMeta(fname,callback){
     ffmpeg.ffprobe(fname, function(err,metadata){
         if(err){
             logger.error(err);
-            return false
+            
         }
 
         var streamInfo = metadata.streams ? metadata.streams : {'streamInfo':'none',};
@@ -185,7 +186,7 @@ function getMeta(fname,callback){
         logger.info(streamInfo);
         logger.info(formatInfoArray);
 
-        callback(streamInfoArray1,formatInfoArray);
+        callback(null, streamInfoArray1,formatInfoArray);
     })
 }
 
@@ -265,7 +266,35 @@ d3.select('#capture').on('click', function(){
         UIkit.modal('#procModal').hide();
     })
     .on('end', function(stdout, stderr) {
+        var thumbSuffix = '_thumb';
         logger.info('capture image succeeded !');
+        var options = {
+            'source' : outputFile,
+            'destination' : path.dirname(outputFile),
+            'suffix' : thumbSuffix,
+            'width' : 100,
+            'logger' : function(message){
+                logger.info(message);
+            }
+        }
+        thumb(options)
+        .then(function(){
+            var thumbPath = path.dirname(outputFile);
+            var extn = path.extname(outputFile);
+            var baseFname = path.basename(outputFile,extn);
+            var thumbnail = path.join(thumbPath,baseFname) + thumbSuffix + extn;
+            d3.select('ul.uk-thumbnav')
+            .append('li')
+            .append('a')
+            .attr('href',outputFile)
+            .append('img')
+            .attr('src', thumbnail);
+        })
+        .then(null,function(err){
+            logger.error(err);
+            UKalert(err);
+        })
+
         UIkit.modal('#procModal').hide();
         //UIkit.modal('#modalProgress').hide();
     })
@@ -353,7 +382,7 @@ d3.select("#convert").on('click',function(){
             logger.info('Transcoding succeeded !');
             //UIkit.modal('#modalProgress').hide();
             UIkit.modal('#procModal').hide();
-            getMeta(convFname,function(streamInfo, formatInfo){              
+            getMeta(convFname,function(err, streamInfo, formatInfo){              
                 var beforePanelElement = d3.select('#afterPanelStream');
                 var beforeformatElement = d3.select('#afterPanelFormat');
         
