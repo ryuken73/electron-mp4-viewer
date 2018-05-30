@@ -144,7 +144,7 @@ d3.select('#videoPlayer').on('loadstart',function(){
     logger.info('media ready: %s', fullname );
     d3.select('#fileMgr').attr('disabled',null);
     d3.select('#capture').attr('disabled',null);
-    d3.select('#autocapture').attr('disabled',null);
+    d3.select('#upload').attr('disabled',null);
 
     
     if(d3.select(this).attr('from') === 'drop'){
@@ -215,7 +215,11 @@ d3.select('#videoPlayer').on('error',function(){
 
 d3.select('#fileMgr').on('click', function(){
     var fullname = d3.select('#videoPlayer').attr('src');
-    shell.showItemInFolder(path.dirname(fullname));
+    shell.showItemInFolder(fullname);
+})
+
+d3.select('upload').on('click', function(){
+    
 })
 
 d3.select('#capture').on('click', function(){
@@ -226,12 +230,25 @@ d3.select('#capture').on('click', function(){
     var extn = path.extname(fullname);
     var base = path.basename(fullname,extn);
     var outputFile = path.join(outPath,base) + '_' + offset + '.png';
+        
+    // 변환시작 -> 기존 progress 정보 삭제
+    d3.select('#progressBody').remove();
+
+    // progress HTML 생성
+    d3.select('#procModalBody')
+    .append('p')
+    .attr('id','progressBody')
+    .text('image 추출중 ')
+    .append('span')
+    .attr('id','progress')
+
 
     var command = ffmpeg(fullname)
     .inputOptions(['-ss ' + offset])
     .outputOptions(['-vframes 1'])
     .on('start', function(commandLine) {
-        logger.info('Spawned Ffmpeg with command: ' + commandLine);        
+        logger.info('Spawned Ffmpeg with command: ' + commandLine);   
+        UIkit.modal('#procModal').show();        
     })
     .on('progress', function(progress) {
         logger.info('Processing: ' + progress.percent + '% done');
@@ -245,9 +262,11 @@ d3.select('#capture').on('click', function(){
             if(err) logger.error(err);
             logger.info('file delete success! : %s', outputFile);
         })
+        UIkit.modal('#procModal').hide();
     })
     .on('end', function(stdout, stderr) {
         logger.info('capture image succeeded !');
+        UIkit.modal('#procModal').hide();
         //UIkit.modal('#modalProgress').hide();
     })
     .output(outputFile)
