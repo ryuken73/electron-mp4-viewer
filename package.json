@@ -1,18 +1,17 @@
 {
-  "name": "electron-quick-start",
+  "name": "electron-mp4-converter",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "mp4 converter for SBS (by ryuken)",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/ryuken73/electron-mp4-viewer.git",
   "keywords": [
     "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "mp4",
+    "ffmpeg",
+    "UIkit"
   ],
   "author": "GitHub",
   "license": "CC0-1.0",
