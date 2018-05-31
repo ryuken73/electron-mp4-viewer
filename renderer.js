@@ -64,6 +64,9 @@ var logger = tracer.console(
 			}
 ); 
 
+// converting 중 drop을 막고
+// convert가 끝나면 drop을 푸는 코드
+
 enableDropOnBody();
 
 function enableDropOnBody(){
@@ -134,6 +137,8 @@ function disableDropOnBody(){
     });
 }
 
+//
+
 d3.selection().on('dragover', function(e){
     d3.event.preventDefault();
     d3.event.stopPropagation();    
@@ -146,9 +151,18 @@ d3.select('#videoPlayer').on('loadstart',function(){
     d3.select('#fileMgr').attr('disabled',null);
     d3.select('#capture').attr('disabled',null);
     d3.select('#upload').attr('disabled',null);
-
+    var from = d3.select(this).attr('from');
+    /*
+    var btnClass;
+    if(from === 'drop'){        
+        btnClass = '.load-orig';
+    } else {
+        btnClass = '.load-conv';
+    }
+    UIkit.icon(btnClass,{'icon': 'check'});
+    */
     
-    if(d3.select(this).attr('from') === 'drop'){
+    if(from === 'drop'){
         showModal('메타정보 추출중...');
         getMeta(fullname,function(err, streamInfo, formatInfo){        
             hideModal('메타정보 추출완료');
@@ -163,6 +177,7 @@ d3.select('#videoPlayer').on('loadstart',function(){
 
             var origDiv = d3.select('#orig');
             addLoadBtn(origDiv, 'orig');
+            d3.select('.load-orig').dispatch('click');
         })    
     }
 
@@ -239,7 +254,7 @@ d3.select('#capture').on('click', function(){
     d3.select('#procModalBody')
     .append('p')
     .attr('id','progressBody')
-    .text('image 추출중 ')
+    .text('extracting image...')
     .append('span')
     .attr('id','progress')
 
@@ -312,7 +327,7 @@ d3.select("#convert").on('click',function(){
     d3.select('#procModalBody')
     .append('p')
     .attr('id','progressBody')
-    .text('Convert Processing ')
+    .text('Converting Processed ')
     .append('span')
     .attr('id','progress')
 
@@ -392,6 +407,7 @@ d3.select("#convert").on('click',function(){
                 var convDiv = d3.select('#conv');
                 convDiv.attr('fullname',convFname);
                 addLoadBtn(convDiv,'conv');
+                d3.select('.load-conv').dispatch('click');
             })   
             enableDropOnBody();  
         })
@@ -415,7 +431,20 @@ function addLoadBtn(ele, from){
         d3.select('#title').text(fullname);
         // load video
         d3.select('#videoPlayer').attr('src',fullname);    
-        d3.select('#videoPlayer').attr('from',from);    
+        d3.select('#videoPlayer').attr('from',from);  
+        // change active button color and text
+        var origBtnClass = 'load-orig';
+        var convBtnClass = 'load-conv';
+        d3.select(this)
+        .classed('uk-button-primary',false)
+        .classed('uk-button-secondary',true)
+        .text('Loaded');
+        
+        var prevBtnClass = btnClass == origBtnClass ? convBtnClass : origBtnClass;
+        d3.select('.' + prevBtnClass)
+        .classed('uk-button-secondary',false)
+        .classed('uk-button-primary',true)
+        .text('Load');       
     })
 }
 
