@@ -1,5 +1,6 @@
-.uk-panel , #msgPanel {
-    font-size : 12px;
+.uk-textarea {
+    font-size : 10px;
+    height : 160px;
 }
 
 textarea {

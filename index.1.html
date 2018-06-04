@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./uikit.min.css" />
+    <link rel="stylesheet" href="./render.css" />
+    <title>Fix Your mp4 (by ryuken @SBS)</title>
+  </head>
+  <body class="uk-light uk-background-secondary">
+
+    <div class="uk-section uk-section-small">
+      <div class="uk-container">
+        <div class="uk-grid-small" uk-grid>
+
+          <div class="uk-width-1-2 uk-child-width-auto">
+            <div class="uk-card uk-card-small">
+              <div class="uk-card-header">
+                <p class="uk-text-small" id="title">파일정보</p>
+              </div>
+              <div class="uk-card-body">
+                <video id="videoPlayer" width="100%" height="100%" controls></video>
+              </div>
+              <div class="uk-card-footer">         
+                <button class="uk-button uk-width-1-5 uk-button-default uk-animation-scale-up" id="convert">변환</button>
+                <button class="uk-button uk-width-1-5 uk-button-default uk-animation-scale-up" id="capture" disabled>캡쳐</button>
+                <button class="uk-button uk-width-1-4 uk-button-default uk-animation-scale-up" id="fileMgr" disabled>경로열기</button>
+                <button class="uk-button uk-width-1-4 uk-button-default uk-animation-scale-up" id="upload" disabled>업로드</button>
+              </div>
+
+            </div>     
+          </div>
+
+          <div class="uk-width-1-4" id="orig">
+            <div class="uk-card uk-card-small uk-card-body">
+              <div class="uk-panel uk-panel-scrollable" id="beforePanelStream">
+                 변환전 Video 정보
+              </div>
+              <p>
+              <div class="uk-panel uk-panel-scrollable" id="beforePanelFormat">
+                 변환전 Format 정보
+              </div>
+            </div>
+            <p class='uk-margin-small'></p> 
+          </div>
+
+          <div class="uk-width-1-4" id="conv">
+            <div class="uk-card uk-card-small uk-card-body">
+              <div class="uk-panel uk-panel-scrollable" id="afterPanelStream">
+                변환후 Video 정보
+              </div>
+              <p>
+              <div class="uk-panel uk-panel-scrollable" id="afterPanelFormat">
+                변환후 Format 정보
+              </div>
+            </div>
+            <p class='uk-margin-small'></p> 
+          </div>
+        </div> <!-- grid end -->
+      </div> <!-- container end --> 
+      <p class='uk-margin-small'></p> 
+
+      <div class="uk-container"> 
+        <ul class="uk-thumbnav" uk-lightbox>
+        </ul>
+        <p class='uk-margin-small'></p> 
+        <div class='uk-textarea uk-height-small ' id="msgPanel">
+      </div>
+      <p class='uk-margin-small'></p> 
+      <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand">
+          <div>IP <span><input class="uk-input uk-form-small uk-form-width-small"></input></span></div>
+        </div>
+        <div class="uk-width-expand">
+          <div>ID <span><input class="uk-input uk-form-small uk-form-width-small"></input></span></div>
+        </div>
+        <div class="uk-width-expand">
+            <div>PASSWD <span><input class="uk-input uk-form-small uk-form-width-small"></input></span></div>
+        </div>
+        <div class="uk-width-expand">
+            <div>PATH <span><input class="uk-input uk-form-small uk-form-width-medium"></input></span></div>
+        </div>
+
+      </div>
+        
+        <div id="errorModal" class="uk-flex-top" uk-modal='{"esc-close":true , "bg-close":false}'>
+            <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+               <button class="uk-modal-close-default" type="button" uk-close></button>
+               <p id="errorMsg"></p>
+            </div>
+        </div>  
+
+        <div id="procModal" class="uk-flex-top" uk-modal='{"esc-close":false , "bg-close":false}'>
+          <div id="procModalBody" class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+          </div>
+        </div>  
+      </div> <!-- container end -->
+    </div> <!-- section end -->
+    <script src="./uikit-icons.min.js"></script>
+    <script>
+      // You can also require other files to run in this process
+      require('./renderer.js')
+    </script>
+  </body>
+</html>

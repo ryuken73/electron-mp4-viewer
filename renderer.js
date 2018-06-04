@@ -229,7 +229,7 @@ d3.select('#videoPlayer').on('error',function(){
     */
 })
 
-d3.select('#fileMgr').on('click', function(){
+d3.select('#title').on('click', function(){
     var fullname = d3.select('#videoPlayer').attr('src');
     shell.showItemInFolder(fullname);
 })
@@ -257,7 +257,6 @@ d3.select('#capture').on('click', function(){
     .text('extracting image...')
     .append('span')
     .attr('id','progress')
-
 
     var command = ffmpeg(fullname)
     .inputOptions(['-ss ' + offset])
@@ -302,8 +301,9 @@ d3.select('#capture').on('click', function(){
             .append('li')
             .append('a')
             .attr('href',outputFile)
-            .append('img')
-            .attr('src', thumbnail);
+            .text('image')
+            //.append('img')
+            //.attr('src', thumbnail);
         })
         .then(null,function(err){
             logger.error(err);
