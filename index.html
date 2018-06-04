@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="uk-background-secondary">
   <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="./uikit.min.css" />
@@ -60,26 +60,19 @@
         <!-- <ul class="uk-thumbnav" uk-lightbox></ul> -->
           <ul class="uk-thumbnav"></ul>
         </div>
+        <hr>        
+        <div class="uk-grid uk-grid-small uk-child-width-expand" uk-grid>
+          <div>Server Name<input class="uk-input"></div>
+          <div>IP<input class="uk-input" id="ftpHost"></div>
+          <div>ID<input class="uk-input" id="ftpUser"></div>
+          <div>PWD<input class="uk-input" id="ftpPassword"></div>
+          <div>PATH<input class="uk-input" id="remotePath"></div>
+        </div>
+        <p class="uk-margin-small"></p>
+        <button class="uk-button uk-button-default uk-button-medium uk-width-1-6" id="ftpConfig">FTP 서버구성</button>
         <hr>
 
-        <p class='uk-margin-small'></p> 
-        <div class='uk-textarea uk-height-small' id="msgPanel"></div>
-      
-        <p class='uk-margin-small'></p> 
-        <div class="uk-grid-small" uk-grid>
-          <div class="uk-width-expand">
-            <div>IP <span><input class="uk-input uk-form-small uk-form-width-small"></input></span></div>
-          </div>
-          <div class="uk-width-expand">
-            <div>ID <span><input class="uk-input uk-form-small uk-form-width-small"></input></span></div>
-          </div>
-          <div class="uk-width-expand">
-              <div>PASSWD <span><input class="uk-input uk-form-small uk-form-width-small"></input></span></div>
-          </div>
-          <div class="uk-width-expand">
-              <div>PATH <span><input class="uk-input uk-form-small uk-form-width-medium"></input></span></div>
-          </div>
-        </div>
+        <div class='uk-textarea uk-height-small' id="msgPanel"></div>      
       </div>  <!-- end of container #2 -->
 
         <div id="errorModal" class="uk-flex-top" uk-modal='{"esc-close":true , "bg-close":false}'>

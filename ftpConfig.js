@@ -8,12 +8,8 @@ var ffmpeg = require('fluent-ffmpeg');
 var path = require('path');
 var ffmpegPath = 'C:\\ffmpeg\\bin';
 var fs = require('fs');
-var url = require('url');
 var thumb = require('node-thumbnail').thumb;
 const {shell} = require('electron');
-const {BrowserWindow} = require('electron');
-var {remote} = require('electron');
-
 ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
 
@@ -506,26 +502,3 @@ function hideModal(msg){
 }
 
 logger.info('loading done!')
-
-d3.select('#ftpConfig').on('click',function(){
-    var configHTML = path.join(__dirname,"config.html");
-    var top = remote.getCurrentWindow();
-    console.log(top)
-    var winOpts = {
-        parent : remote.getCurrentWindow(),
-        modal : true,
-        show : false
-    }
-    let child = new remote.BrowserWindow({frame:true});
-    child.on('close', function(){
-        child = null;
-    });
-    child.loadURL(url.format({
-        pathname: configHTML,
-        protocol: 'file:',
-        slashes: true
-    }));
-    child.once('ready-to-show',function(){
-        child.show();
-    })
-})
