@@ -16,10 +16,13 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^2.0.0"
+    "electron": "^2.0.0",
+    "electron-rebuild": "^1.7.3"
   },
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
+    "leveldown": "^4.0.1",
+    "levelup": "^3.0.1",
     "node-thumbnail": "^0.14.0",
     "tracer": "^0.8.15"
   }

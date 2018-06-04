@@ -10,7 +10,31 @@
 
     <div class="uk-section uk-section-small">
       <div class="uk-container">
-        ftp server configuration 
+        <div class="uk-grid uk-child-width-expand" uk-grid>
+          <div>서버명</div>
+          <div>주소</div>
+          <div>아이디</div>
+          <div>암호</div>
+          <div>경로</div>
+          <div>삭제</div>
+        </div>
+        <hr>
+        <div id="serverList">
+          <!--
+          <div class="uk-grid uk-child-width-expand uk-margin" uk-grid>
+            <div><input class="uk-input"></input></div>
+            <div><input class="uk-input"></input></div>
+            <div><input class="uk-input"></input></div>
+            <div><input class="uk-input"></input></div>
+            <div><input class="uk-input"></input></div>
+            <div><button class="uk-button uk-button-danger">DEL</button></div>
+          </div>
+          -->
+        </div>
+        <hr>
+        <div class="uk-grid uk-child-width-expand uk-margin" uk-grid>
+          <div class="uk-width-1-2"><button class="uk-button uk-button-default uk-width-1-1" id="addServer">추가</button></div>
+          <div class="uk-width-1-2"><button class="uk-button uk-button-default uk-width-1-1" id="saveConfig">저장</button></div>
       </div> <!-- container end -->
     </div> <!-- section end -->
     <script src="./uikit-icons.min.js"></script>

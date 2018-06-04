@@ -513,10 +513,13 @@ d3.select('#ftpConfig').on('click',function(){
     console.log(top)
     var winOpts = {
         parent : remote.getCurrentWindow(),
+        width: 1024, 
+        height: 768,
         modal : true,
-        show : false
+        show : false,
+        frame : true
     }
-    let child = new remote.BrowserWindow({frame:true});
+    let child = new remote.BrowserWindow(winOpts);
     child.on('close', function(){
         child = null;
     });
