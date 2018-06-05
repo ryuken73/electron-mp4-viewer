@@ -507,6 +507,141 @@ function hideModal(msg){
 
 logger.info('loading done!')
 
+
+// ftp server config + click event handler
+d3.select('#ftpConfig').on('click',function(){
+    var config = d3.select('#serverConfig')
+    var hidden = config.classed('uk-hidden');
+    logger.info(hidden);
+
+    if(hidden){
+        d3.select(this).text(' - ');
+        config.classed('uk-hidden',false);
+        config.classed('uk-visible',true);
+    } else {
+        d3.select(this).text(' + ');
+        config.classed('uk-visible',false);
+        config.classed('uk-hidden',true);
+    }
+})
+
+// ftp server pannel server add click event handler
+d3.select('#addServer').on('click',function(){
+
+    var newRow = d3.select('#serverList')
+    .append('div')
+
+    newRow
+    .classed('uk-grid',true)
+    .classed('uk-grid-small',true)
+    //.classed('uk-child-width-expand',true)
+    .classed('uk-child-width-auto',true)
+    .classed('uk-margin-small',true)
+    .classed('serverInfo',true)
+    .attr('uk-grid','')
+
+    newRow
+    .append('div')
+    .append('input')
+    .classed('uk-radio',true)
+    .attr('type','radio')
+    .attr('name','selectRadio')
+
+    newRow
+    .append('div')
+    .append('input')
+    .classed('uk-input',true)
+    .classed('uk-form-small',true)
+    .attr('column','servername')
+    .attr('placeholder','Server Name')
+
+    newRow
+    .append('div')
+    .append('input')
+    .classed('uk-input',true)
+    .classed('uk-form-small',true)
+    .attr('column','ip')
+    .attr('placeholder','IP')
+
+    newRow
+    .append('div')
+    .append('input')
+    .classed('uk-input',true)
+    .classed('uk-form-small',true)
+    .attr('column','id')
+    .attr('placeholder','ID')
+
+
+    newRow
+    .append('div')
+    .append('input')
+    .classed('uk-input',true)
+    .classed('uk-form-small',true)
+    .classed('uk-width-1-8',true)
+    .attr('column','pwd')
+    .attr('placeholder','PASSWORD')
+
+
+    newRow
+    .append('div')
+    .append('input')
+    .classed('uk-input',true)
+    .classed('uk-form-small',true)
+    .attr('column','path')
+    .attr('placeholder','PATH')
+
+    newRow
+    .append('div')
+    .append('button')
+    .classed('uk-button',true)
+    .classed('uk-button-danger',true)
+    .classed('uk-button-small',true)
+    .attr('id','delServer')
+    .text('DEL')
+    .on('click',function(){
+        newRow.remove();
+    })
+
+})
+
+d3.select('#saveConfig').on('click',function(){
+    // @ leveldb record shape
+    // key = serverName
+    // value = {ip:-, id:-, pwd:-, path:-}
+    var serverConfigs = [];
+    var index
+
+    d3.selectAll('.serverInfo')
+    .each(function(){
+        d3.select(this)
+        .selectAll('div')
+        .selectAll('input')
+        .each(function(d,i,n){
+            if(d3.select(this).classed('uk-radio')){
+                // this is first column
+                // initialize server in serverInfos
+                serverConfigs.push({})
+                index = serverConfigs.length - 1;
+                logger.info(index)
+            } else {            
+                // add connection info on n'th server object  
+                var colname = d3.select(this).attr('column');
+                var value = d3.select(this).property('value');
+                serverConfigs[index][colname] = value;
+            }
+        })   
+    })
+
+    logger.info('save serverinfo : %j',serverConfigs);
+
+
+
+
+})
+
+/*
+// make modal windows
+// too slow
 d3.select('#ftpConfig').on('click',function(){
     var configHTML = path.join(__dirname,"config.html");
     var top = remote.getCurrentWindow();
@@ -532,3 +667,4 @@ d3.select('#ftpConfig').on('click',function(){
         child.show();
     })
 })
+*/

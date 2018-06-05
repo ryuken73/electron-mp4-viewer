@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="./render.css" />
     <title>Fix Your mp4 (by ryuken @SBS)</title>
   </head>
-  <body class="uk-light uk-background-secondary">
+  <body class="uk-light uk-background-secondary" style="overflow-y:scroll">
 
     <div class="uk-section uk-section-small">
       <div class="uk-container">
@@ -20,14 +20,14 @@
             <div>
               <div class="uk-text-center uk-child-width-expand" uk-grid>
                 <div>
-                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up" id="convert">변환</button>
+                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up uk-button-small" id="convert">변환</button>
                 </div>
                 <div>
-                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up" id="capture" disabled>캡쳐</button>
+                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up uk-button-small" id="capture" disabled>캡쳐</button>
                 </div>
                 <!-- <button class="uk-button uk-width-1-4 uk-button-default uk-animation-scale-up" id="fileMgr" disabled>경로열기</button>-->
                 <div>
-                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up" id="upload" disabled>업로드</button>
+                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up uk-button-small" id="upload" disabled>업로드</button>
                 </div>
               </div>
             </div>
@@ -62,15 +62,31 @@
         </div>
         <hr>        
         <div class="uk-grid uk-grid-small uk-child-width-expand" uk-grid>
-          <div>Server Name<input class="uk-input"></div>
-          <div>IP<input class="uk-input" id="ftpHost"></div>
-          <div>ID<input class="uk-input" id="ftpUser"></div>
-          <div>PWD<input class="uk-input" id="ftpPassword"></div>
-          <div>PATH<input class="uk-input" id="remotePath"></div>
+          <div class="uk-text-small">Server Name<a href="#1" id="ftpConfig" style="font-size:12px"> + </a><input class="uk-input uk-form-small"></div>
+          <div class="uk-text-small">IP<input class="uk-input uk-form-small" id="ftpHost"></div>
+          <div class="uk-text-small">ID<input class="uk-input uk-form-small" id="ftpUser"></div>
+          <div class="uk-text-small">PWD<input class="uk-input uk-form-small" id="ftpPassword"></div>
+          <div class="uk-text-small">PATH<input class="uk-input uk-form-small" id="remotePath"></div>
         </div>
         <p class="uk-margin-small"></p>
-        <button class="uk-button uk-button-default uk-button-medium uk-width-1-6" id="ftpConfig">FTP 서버구성</button>
+
+        <div id="serverConfig" class="uk-hidden">
+          <div id="serverList" class="uk-panel uk-panel-scrollable" style="overflow-y:scroll"></div>
+          <div class="uk-grid uk-child-width-expand uk-margin">
+              <div class="uk-width-1-2">
+                <button class="uk-button uk-button-default uk-width-1-1" id="addServer">ADD</button>
+              </div>
+              <div class="uk-width-1-2">
+                <button class="uk-button uk-button-default uk-width-1-1" id="saveConfig">SAVE</button>
+              </div>         
+            </div>
+        </div> <!-- end of serverConfig -->
         <hr>
+
+        <!--
+        <button class="uk-button uk-button-text uk-width-1-6 uk-text-small" id="ftpConfig">FTP 서버구성</button>
+        <hr>
+        -->
 
         <div class='uk-textarea uk-height-small' id="msgPanel"></div>      
       </div>  <!-- end of container #2 -->
