@@ -9,13 +9,18 @@ var path = require('path');
 var ffmpegPath = 'C:\\ffmpeg\\bin';
 var fs = require('fs');
 var url = require('url');
+var levelup = require('levelup');
+var leveldown = require('leveldown');
 var thumb = require('node-thumbnail').thumb;
 const {shell} = require('electron');
 const {BrowserWindow} = require('electron');
 var {remote} = require('electron');
 
+
 ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
+
+var db = levelup(leveldown('mydb'));
 
 /* camera rendering
 var errorCallback = function(e) {
@@ -305,9 +310,9 @@ d3.select('#capture').on('click', function(){
             .append('li')
             .append('a')
             .attr('href',outputFile)
-            .text('image')
-            //.append('img')
-            //.attr('src', thumbnail);
+            //.text('image')
+            .append('img')
+            .attr('src', thumbnail);
         })
         .then(null,function(err){
             logger.error(err);
@@ -506,9 +511,27 @@ function hideModal(msg){
 }
 
 logger.info('loading done!')
-
-
+logger.info(process.versions)
 // ftp server config + click event handler
+
+// select ftp server info and make row
+selectAllData(function(serverInfos){
+    serverInfos.map(function(server){
+        logger.info(server);
+        addNewRow('#serverList', server, function(){
+            if(server.checked){
+                d3.select('div#current').selectAll('div')
+                .select('input')
+                .select(function(d,i,n){
+                    var key = d3.select(this).attr('id');
+                    d3.select(this).property('value', server[key])
+                })
+            }
+            logger.info('server list load done!');
+        });
+    })
+})
+
 d3.select('#ftpConfig').on('click',function(){
     var config = d3.select('#serverConfig')
     var hidden = config.classed('uk-hidden');
@@ -525,10 +548,46 @@ d3.select('#ftpConfig').on('click',function(){
     }
 })
 
+function selectAllData(callback){
+
+    // run callback with parameter server info object
+    // { servername:, ip:, id:, pwd:, path:}
+
+    var result = [];
+
+    db.createReadStream()
+    .on('data', function (buf) {
+        var serverInfo = JSON.parse(buf.value.toString());
+        serverInfo.servername = buf.key.toString();
+        result.push(serverInfo)
+      //logger.info(data.key, '=', data.value);
+      //callback(data);
+    })
+    .on('error', function (err) {
+      logger.error(err)
+    })
+    .on('close', function () {
+      logger.info('Stream closed')
+    })
+    .on('end', function () {
+      logger.info('Stream ended')
+      callback(result);
+    })
+}
+
 // ftp server pannel server add click event handler
 d3.select('#addServer').on('click',function(){
+    addNewRow('#serverList', null, function(){
+        var serverPannel = d3.select('#serverList');
+        serverPannel.property('scrollTop', serverPannel.property('scrollHeight'));
+    });
+})
 
-    var newRow = d3.select('#serverList')
+function addNewRow(selector, data, callback){
+
+    logger.info(data)
+
+    var newRow = d3.select(selector)
     .append('div')
 
     newRow
@@ -546,6 +605,25 @@ d3.select('#addServer').on('click',function(){
     .classed('uk-radio',true)
     .attr('type','radio')
     .attr('name','selectRadio')
+    .property('checked', function(){
+        return data ? data.checked : false
+    })
+    .on('click',function(){
+        var parent = d3.select(this.parentNode);
+        parent.select(function(d,i,n){
+            var row = d3.select(this.parentNode)
+            row.selectAll('div').selectAll('input')
+            .each(function(d,i,n){
+                var colname = d3.select(this).attr('column');
+                var value = d3.select(this).property('value');
+                d3.select('div#current').selectAll('div')
+                .each(function(d,i,n){
+                    var id = '#' + colname;
+                    d3.select('input' + id).property('value', value);
+                })
+            })
+        })
+    })
 
     newRow
     .append('div')
@@ -554,6 +632,9 @@ d3.select('#addServer').on('click',function(){
     .classed('uk-form-small',true)
     .attr('column','servername')
     .attr('placeholder','Server Name')
+    .property('value',function(){
+        return data ? data.servername : ''
+    })
 
     newRow
     .append('div')
@@ -562,6 +643,10 @@ d3.select('#addServer').on('click',function(){
     .classed('uk-form-small',true)
     .attr('column','ip')
     .attr('placeholder','IP')
+    .property('value',function(){
+        return data ? data.ip : ''
+    })
+
 
     newRow
     .append('div')
@@ -570,7 +655,9 @@ d3.select('#addServer').on('click',function(){
     .classed('uk-form-small',true)
     .attr('column','id')
     .attr('placeholder','ID')
-
+    .property('value',function(){
+        return data ? data.id : ''
+    })
 
     newRow
     .append('div')
@@ -578,9 +665,12 @@ d3.select('#addServer').on('click',function(){
     .classed('uk-input',true)
     .classed('uk-form-small',true)
     .classed('uk-width-1-8',true)
+    .attr('type','password')
     .attr('column','pwd')
     .attr('placeholder','PASSWORD')
-
+    .property('value',function(){
+        return data ? data.pwd : ''
+    })
 
     newRow
     .append('div')
@@ -589,6 +679,9 @@ d3.select('#addServer').on('click',function(){
     .classed('uk-form-small',true)
     .attr('column','path')
     .attr('placeholder','PATH')
+    .property('value',function(){
+        return data ? data.path : ''
+    })
 
     newRow
     .append('div')
@@ -602,27 +695,47 @@ d3.select('#addServer').on('click',function(){
         newRow.remove();
     })
 
-})
+    callback(newRow);
+}
 
 d3.select('#saveConfig').on('click',function(){
+    // initialize(clear) database
+    selectAllData(function(serverInfos){
+        var processed = 0;
+        serverInfos.map(function(server){
+            var key = server.servername;
+            db.del(key,function(err){
+                if(err) logger.error(err);
+                processed += 1;
+                if(processed == serverInfos.length){
+                    var serverConfigs = readRows();
+                    insertRows(serverConfigs);
+                }
+            })
+        })
+    })
+})
+
+function readRows(){
     // @ leveldb record shape
     // key = serverName
     // value = {ip:-, id:-, pwd:-, path:-}
     var serverConfigs = [];
-    var index
+    var index;
 
     d3.selectAll('.serverInfo')
-    .each(function(){
+    .select(function(d,i,n){
+        logger.info('.serverInfo : %d', i)
         d3.select(this)
         .selectAll('div')
         .selectAll('input')
-        .each(function(d,i,n){
+        .select(function(d,i,n){
             if(d3.select(this).classed('uk-radio')){
                 // this is first column
                 // initialize server in serverInfos
-                serverConfigs.push({})
+                var checked = d3.select(this).property('checked')
+                serverConfigs.push({'checked':checked});
                 index = serverConfigs.length - 1;
-                logger.info(index)
             } else {            
                 // add connection info on n'th server object  
                 var colname = d3.select(this).attr('column');
@@ -632,12 +745,32 @@ d3.select('#saveConfig').on('click',function(){
         })   
     })
 
+    return serverConfigs;
+}
+
+function insertRows(serverConfigs){
+    
     logger.info('save serverinfo : %j',serverConfigs);
-
-
-
-
-})
+    serverConfigs.map(function(server){
+        var k = server.servername;
+        var v = {
+            ip : server.ip,
+            id : server.id,
+            pwd : server.pwd,
+            path : server.path,
+            checked : server.checked
+        }
+        var vString = JSON.stringify(v)
+        db.put(k,vString,function(err){
+            if(err) {
+                logger.error(err);
+            } else {
+                logger.info('save success! : %j', server)
+            }
+        })
+        
+    })
+}
 
 /*
 // make modal windows

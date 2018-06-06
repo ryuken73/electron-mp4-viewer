@@ -61,24 +61,27 @@
           <ul class="uk-thumbnav"></ul>
         </div>
         <hr>        
-        <div class="uk-grid uk-grid-small uk-child-width-expand" uk-grid>
-          <div class="uk-text-small">Server Name<a href="#1" id="ftpConfig" style="font-size:12px"> + </a><input class="uk-input uk-form-small"></div>
-          <div class="uk-text-small">IP<input class="uk-input uk-form-small" id="ftpHost"></div>
-          <div class="uk-text-small">ID<input class="uk-input uk-form-small" id="ftpUser"></div>
-          <div class="uk-text-small">PWD<input class="uk-input uk-form-small" id="ftpPassword"></div>
-          <div class="uk-text-small">PATH<input class="uk-input uk-form-small" id="remotePath"></div>
+        <div class="uk-grid uk-grid-small uk-child-width-expand" id="current" uk-grid>
+          <div class="uk-text-small">Server Name<a href="#1" id="ftpConfig" style="font-size:12px"> + </a><input class="uk-input uk-form-small" id="servername"></div>
+          <div class="uk-text-small">IP<input class="uk-input uk-form-small" id="ip"></div>
+          <div class="uk-text-small">ID<input class="uk-input uk-form-small" id="id"></div>
+          <div class="uk-text-small">PWD<input class="uk-input uk-form-small" type="password" id="pwd"></div>
+          <div class="uk-text-small">PATH<input class="uk-input uk-form-small" id="path"></div>
         </div>
         <p class="uk-margin-small"></p>
 
         <div id="serverConfig" class="uk-hidden">
           <div id="serverList" class="uk-panel uk-panel-scrollable" style="overflow-y:scroll"></div>
           <div class="uk-grid uk-child-width-expand uk-margin">
-              <div class="uk-width-1-2">
-                <button class="uk-button uk-button-default uk-width-1-1" id="addServer">ADD</button>
+              <div class="uk-width-1-3">
+                <button class="uk-button uk-button-default uk-width-1-2" id="addServer">ADD</button>
               </div>
-              <div class="uk-width-1-2">
-                <button class="uk-button uk-button-default uk-width-1-1" id="saveConfig">SAVE</button>
+              <div class="uk-width-1-3">
+                <button class="uk-button uk-button-default uk-width-1-2" id="saveConfig">SAVE</button>
               </div>         
+              <div class="uk-width-1-3">
+                <button class="uk-button uk-button-default uk-width-1-2" id="loadConfig">CANCEL</button>
+              </div>   
             </div>
         </div> <!-- end of serverConfig -->
         <hr>
