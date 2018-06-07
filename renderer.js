@@ -12,15 +12,18 @@ var url = require('url');
 var levelup = require('levelup');
 var leveldown = require('leveldown');
 var thumb = require('node-thumbnail').thumb;
+var ftp = require('ftp');
 const {shell} = require('electron');
 const {BrowserWindow} = require('electron');
 var {remote} = require('electron');
+
+var WOWZAURL = 'hdretv.sbs.co.kr:1935/STREAM/_definst_/mp4:/SBSNOW/';
 
 
 ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
 
-var db = levelup(leveldown('mydb'));
+var db = levelup(leveldown('mp4db'));
 
 /* camera rendering
 var errorCallback = function(e) {
@@ -243,8 +246,113 @@ d3.select('#title').on('click', function(){
     shell.showItemInFolder(fullname);
 })
 
-d3.select('upload').on('click', function(){
-    
+d3.select('#upload').on('click', function(){
+    logger.info('upload start!')
+
+    //upload 시작 -> 기존 progress 정보 삭제
+    d3.select('#progressBody').remove();
+
+    // progress HTML 생성
+    d3.select('#procModalBody')
+    .append('p')
+    .attr('id','progressBody')
+    .text('ftp transfer Processed ')
+    .append('span')
+    .attr('id','progress')
+
+    // progress HTML에 cancel button 추가
+    d3.select('#procModalBody')
+    .select('p')     
+    .append('span')
+    .append('button')
+    .attr('id','cancel')
+    .classed('uk-button',true)
+    .classed('uk-button-small',true)
+    .classed('uk-button-primary',true)
+    .classed('uk-position-center-right',true)
+    .classed('uk-position-medium', true)
+    .text('전송취소')
+    // UI end
+
+    var connectionOpts = {};    
+    connectionOpts.host = d3.select('#ip').property('value');
+    connectionOpts.user = d3.select('#id').property('value');
+    connectionOpts.password = d3.select('#pwd').property('value');
+    logger.info('ftp connection info : %j', connectionOpts);
+
+    var now = new Date();
+    var fullname = d3.select('#videoPlayer').attr('src');
+    var extname = path.extname(fullname);
+    var basename = path.basename(fullname,extname);
+    var targetDir = d3.select('#path').property('value')
+    var targetname = basename + '_' + now.getTime() + extname;
+    var targetFullname = path.posix.join(targetDir,targetname);
+    logger.info("save %s to %s",fullname,targetFullname);
+
+    var c = new ftp();
+    c.on('ready',function(){
+
+        UIkit.modal('#procModal').show();
+        d3.select('#cancel').on('click', function(){
+            logger.info('전송취소... %s',fullname);
+            d3.select('#modalProgress').text('취소중..');
+            /*
+            c.destroy(function(){
+                logger.info('ftp connection destroyed');
+                readStream.destroy();
+                  //UIkit.modal('#procModal').hide();
+            })
+            */
+            c.abort(function(err){
+                logger.info('connection aborted');
+                logger.error(err);
+            })
+            readStream.destroy();
+            UIkit.modal('#procModal').hide();
+        })
+
+
+        var readStream = fs.createReadStream(fullname);
+        var progressed = 0;
+        var total = fs.statSync(fullname).size;
+
+        readStream.on('data',function(d){
+            progressed += d.length;
+            var percent = (progressed/total*100).toFixed(1) + '% complete';
+            //logger.info(percent);
+            d3.select('#progress').text(' : ' + percent);
+        })
+
+        readStream.on('error',function(err){
+            logger.error(err);
+            UKalert(err);
+        })
+
+        c.cwd(targetDir, function(err,pathname){
+            if(err){
+                logger.error(err);
+                UKalert(err);
+            } else {
+                c.put(readStream, targetname, function(err){
+                    if(err){
+                        logger.error(err);
+                        UKalert(err);
+                        UIkit.modal('#procModal').hide();
+                    }else{
+                        logger.info('ftp upload success : %s', targetname);
+                        c.end()
+                        UIkit.modal('#procModal').hide();
+                        UKalert('stream url : ' + WOWZAURL + targetname);
+                    }
+                })
+            }
+        })
+
+    })  
+    c.on('error', function(err){
+        logger.error(err);
+    })  
+    c.connect(connectionOpts)
 })
 
 d3.select('#capture').on('click', function(){
@@ -510,7 +618,7 @@ function hideModal(msg){
     },1000)
 }
 
-logger.info('loading done!')
+logger.info('loading done1!')
 logger.info(process.versions)
 // ftp server config + click event handler
 
@@ -699,20 +807,31 @@ function addNewRow(selector, data, callback){
 }
 
 d3.select('#saveConfig').on('click',function(){
+    logger.info('saveConfig clicked');
     // initialize(clear) database
     selectAllData(function(serverInfos){
         var processed = 0;
-        serverInfos.map(function(server){
-            var key = server.servername;
-            db.del(key,function(err){
-                if(err) logger.error(err);
-                processed += 1;
-                if(processed == serverInfos.length){
-                    var serverConfigs = readRows();
-                    insertRows(serverConfigs);
-                }
+
+        if(serverInfos.length != 0){
+            serverInfos.map(function(server){
+                logger.info('delete : %j', server);
+                var key = server.servername;
+                db.del(key,function(err){
+                    if(err) logger.error(err);
+                    logger.info('db cleare success!')
+                    processed += 1;
+                    if(processed == serverInfos.length){
+                        var serverConfigs = readRows();
+                        insertRows(serverConfigs);
+                    }
+                })
             })
-        })
+        } else {
+            var serverConfigs = readRows();
+            insertRows(serverConfigs);
+        }
+
+
     })
 })
 
@@ -744,6 +863,8 @@ function readRows(){
             }
         })   
     })
+
+    logger.info(serverConfigs);
 
     return serverConfigs;
 }
