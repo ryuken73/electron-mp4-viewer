@@ -20,7 +20,7 @@ var {remote} = require('electron');
 ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
 
-var db = levelup(leveldown('mydb'));
+var db = levelup(leveldown('mp4db'));
 
 /* camera rendering
 var errorCallback = function(e) {
@@ -510,7 +510,7 @@ function hideModal(msg){
     },1000)
 }
 
-logger.info('loading done!')
+logger.info('loading done1!')
 logger.info(process.versions)
 // ftp server config + click event handler
 
@@ -699,20 +699,31 @@ function addNewRow(selector, data, callback){
 }
 
 d3.select('#saveConfig').on('click',function(){
+    logger.info('saveConfig clicked');
     // initialize(clear) database
     selectAllData(function(serverInfos){
         var processed = 0;
-        serverInfos.map(function(server){
-            var key = server.servername;
-            db.del(key,function(err){
-                if(err) logger.error(err);
-                processed += 1;
-                if(processed == serverInfos.length){
-                    var serverConfigs = readRows();
-                    insertRows(serverConfigs);
-                }
+
+        if(serverInfos.length != 0){
+            serverInfos.map(function(server){
+                logger.info('delete : %j', server);
+                var key = server.servername;
+                db.del(key,function(err){
+                    if(err) logger.error(err);
+                    logger.info('db cleare success!')
+                    processed += 1;
+                    if(processed == serverInfos.length){
+                        var serverConfigs = readRows();
+                        insertRows(serverConfigs);
+                    }
+                })
             })
-        })
+        } else {
+            var serverConfigs = readRows();
+            insertRows(serverConfigs);
+        }
+
+
     })
 })
 
@@ -744,6 +755,8 @@ function readRows(){
             }
         })   
     })
+
+    logger.info(serverConfigs);
 
     return serverConfigs;
 }
