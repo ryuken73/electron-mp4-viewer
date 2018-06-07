@@ -342,7 +342,7 @@ d3.select('#upload').on('click', function(){
                         logger.info('ftp upload success : %s', targetname);
                         c.end()
                         UIkit.modal('#procModal').hide();
-                        UKalert('stream url : ' + WOWZAURL + targetname);
+                        UKalert('stream url : ' + WOWZAURL + ' ' + targetname);
                     }
                 })
             }
@@ -416,11 +416,22 @@ d3.select('#capture').on('click', function(){
             var thumbnail = path.join(thumbPath,baseFname) + thumbSuffix + extn;
             d3.select('ul.uk-thumbnav')
             .append('li')
+            .classed('thumbnail',true)
             .append('a')
             .attr('href',outputFile)
             //.text('image')
             .append('img')
             .attr('src', thumbnail);
+
+            var navSize = d3.select('ul.uk-thumbnav').selectAll('li').size();
+            var FIRST_THUMBNALE = (navSize == 2) ? true : false;
+            logger.info('navSize : %d, first ? : %j', navSize, FIRST_THUMBNALE);
+
+            if(FIRST_THUMBNALE) {
+                d3.select('#liDelALL').classed('uk-hidden',false);
+                d3.select('#liDelALL').classed('uk-visible',true);
+            }
+
         })
         .then(null,function(err){
             logger.error(err);
@@ -434,6 +445,72 @@ d3.select('#capture').on('click', function(){
     .run();
 
 })
+
+d3.select('#buttonDelALL').on('click',function(){
+    var thumbnails = [];
+    var captures =[];
+    d3.select('.uk-thumbnav').selectAll('li').selectAll('a').selectAll('img')
+    .select(function(d,i,n){ 
+        var thumb = d3.select(this).attr('src');
+        if(thumb) thumbnails.push(thumb);
+    })
+
+
+    d3.select('.uk-thumbnav').selectAll('li').selectAll('a')
+    .select(function(d,i,n){ 
+        var capture = d3.select(this).attr('href');
+        if(capture) captures.push(capture)
+    })
+
+    logger.info(thumbnails);
+    logger.info(captures);
+
+    thumbnails.map(function(thumb){
+        fs.unlink(thumb,function(err){
+            if(err){
+                logger.error('delete fail : %s', thumb);                
+            } else {
+                logger.info('delete success : %s', thumb);
+            }
+        })        
+    })
+  
+    captures.map(function(capture){
+        fs.unlink(capture,function(err){
+            if(err){
+                logger.error('delete fail : %s', capture);                
+            } else {
+                logger.info('delete success : %s', capture);
+            }
+        })        
+    })  
+
+    d3.select('.uk-thumbnav').selectAll('li.thumbnail').remove();
+
+})
+
+// observe nav child element add or remove
+// refer to https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+// var targetNode = d3.select('#thumbnav');
+var targetNode = d3.select('#thumbnav').node();
+// above is same as var targetNode = document.getElementById('thumbnav')
+var mutationConfig = {childList : true};
+var observer = new MutationObserver(function(mutationList){
+    logger.info('thumbnail changed')
+    logger.info(mutationList);
+
+    var navSize = d3.select('ul.uk-thumbnav').selectAll('li').size();
+    var NO_THUMBNAILS = (navSize == 1) ? true : false;
+    logger.info('navSize : %d, no thumbnails ? : %j', navSize, NO_THUMBNAILS);
+
+    if(NO_THUMBNAILS) {
+        d3.select('#liDelALL').classed('uk-visible',false);
+        d3.select('#liDelALL').classed('uk-hidden',true);
+    }
+})
+observer.observe(targetNode, mutationConfig);
+//
+
 
 d3.select("#convert").on('click',function(){
 
