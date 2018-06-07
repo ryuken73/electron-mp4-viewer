@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
+    "ftp": "^0.3.10",
     "leveldown": "^4.0.1",
     "levelup": "^3.0.1",
     "node-thumbnail": "^0.14.0",
