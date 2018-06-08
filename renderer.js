@@ -351,6 +351,7 @@ d3.select('#upload').on('click', function(){
     })  
     c.on('error', function(err){
         logger.error(err);
+        UKalert(err);
     })  
     c.connect(connectionOpts)
 })
