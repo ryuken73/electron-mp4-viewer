@@ -58,7 +58,9 @@
       <div class="uk-container"> 
         <div uk-lightbox>
         <!-- <ul class="uk-thumbnav" uk-lightbox></ul> -->
-          <ul class="uk-thumbnav"></ul>
+          <ul class="uk-thumbnav" id="thumbnav" uk-margin>
+            <li class="uk-hidden" id="liDelALL" ><button class="uk-button uk-button-danger uk-button-small" id="buttonDelALL">전체삭제</button></li>
+          </ul>
         </div>
         <hr>        
         <div class="uk-grid uk-grid-small uk-child-width-expand" id="current" uk-grid>
@@ -74,13 +76,13 @@
           <div id="serverList" class="uk-panel uk-panel-scrollable" style="overflow-y:scroll"></div>
           <div class="uk-grid uk-child-width-expand uk-margin">
               <div class="uk-width-1-3">
-                <button class="uk-button uk-button-default uk-width-1-2" id="addServer">ADD</button>
+                <button class="uk-button uk-button-default uk-width-1-2 uk-button-small" id="addServer">ADD</button>
               </div>
               <div class="uk-width-1-3">
-                <button class="uk-button uk-button-default uk-width-1-2" id="saveConfig">SAVE</button>
+                <button class="uk-button uk-button-default uk-width-1-2 uk-button-small" id="saveConfig">SAVE</button>
               </div>         
               <div class="uk-width-1-3">
-                <button class="uk-button uk-button-default uk-width-1-2" id="loadConfig">CANCEL</button>
+                <button class="uk-button uk-button-default uk-width-1-2 uk-button-small" id="loadConfig">CANCEL</button>
               </div>   
             </div>
         </div> <!-- end of serverConfig -->
@@ -101,7 +103,7 @@
             </div>
         </div>  
 
-        <div id="procModal" class="uk-flex-top" uk-modal='{"esc-close":false , "bg-close":false}'>
+        <div id="procModal" class="uk-flfex-top" uk-modal='{"esc-close":false , "bg-close":false}'>
           <div id="procModalBody" class="uk-modal-dialog uk-modal-body uk-background-secondary uk-margin-auto-vertical">
           </div>
         </div>  
