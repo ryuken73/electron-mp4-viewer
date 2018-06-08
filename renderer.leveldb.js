@@ -9,6 +9,8 @@ var path = require('path');
 var ffmpegPath = 'C:\\ffmpeg\\bin';
 var fs = require('fs');
 var url = require('url');
+var levelup = require('levelup');
+var leveldown = require('leveldown');
 var thumb = require('node-thumbnail').thumb;
 var ftp = require('ftp');
 const {shell} = require('electron');
@@ -21,6 +23,7 @@ var WOWZAURL = 'hdretv.sbs.co.kr:1935/STREAM/_definst_/mp4:/SBSNOW/';
 ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
 
+var db = levelup(leveldown('mp4db'));
 
 /* camera rendering
 var errorCallback = function(e) {
@@ -732,22 +735,29 @@ d3.select('#ftpConfig').on('click',function(){
 
 function selectAllData(callback){
 
-    // select all data [{ servername:, ip:, id:, pwd:, path:},{ servername:, ip:, id:, pwd:, path:}..]
-    // run callback above data
+    // run callback with parameter server info object
+    // { servername:, ip:, id:, pwd:, path:}
 
     var result = [];
-    console.log(localStorage);
-    var serverSize = localStorage.length;
-    var key = 0;
-    while ( key < serverSize ){
-        var servername = localStorage.key(key);
-        var serverInfo = JSON.parse(localStorage[servername]);
-        serverInfo.servername = servername;
-        result.push(serverInfo);
-        key += 1;
-    }
 
-    callback(result);
+    db.createReadStream()
+    .on('data', function (buf) {
+        var serverInfo = JSON.parse(buf.value.toString());
+        serverInfo.servername = buf.key.toString();
+        result.push(serverInfo)
+      //logger.info(data.key, '=', data.value);
+      //callback(data);
+    })
+    .on('error', function (err) {
+      logger.error(err)
+    })
+    .on('close', function () {
+      logger.info('Stream closed')
+    })
+    .on('end', function () {
+      logger.info('Stream ended')
+      callback(result);
+    })
 }
 
 // ftp server pannel server add click event handler
@@ -876,9 +886,30 @@ function addNewRow(selector, data, callback){
 d3.select('#saveConfig').on('click',function(){
     logger.info('saveConfig clicked');
     // initialize(clear) database
-    localStorage.clear();
-    var serverConfigs = readRows();
-    insertRows(serverConfigs);
+    selectAllData(function(serverInfos){
+        var processed = 0;
+
+        if(serverInfos.length != 0){
+            serverInfos.map(function(server){
+                logger.info('delete : %j', server);
+                var key = server.servername;
+                db.del(key,function(err){
+                    if(err) logger.error(err);
+                    logger.info('db cleare success!')
+                    processed += 1;
+                    if(processed == serverInfos.length){
+                        var serverConfigs = readRows();
+                        insertRows(serverConfigs);
+                    }
+                })
+            })
+        } else {
+            var serverConfigs = readRows();
+            insertRows(serverConfigs);
+        }
+
+
+    })
 })
 
 function readRows(){
@@ -928,8 +959,14 @@ function insertRows(serverConfigs){
             checked : server.checked
         }
         var vString = JSON.stringify(v)
-        localStorage.setItem(k, vString);
-        logger.info('save success! : %j', server);       
+        db.put(k,vString,function(err){
+            if(err) {
+                logger.error(err);
+            } else {
+                logger.info('save success! : %j', server)
+            }
+        })
+        
     })
 }
 
