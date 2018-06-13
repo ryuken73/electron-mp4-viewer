@@ -17,7 +17,7 @@ let mainWindow
 function createWindow () {
   // Create the browser window.
   // mainWindow = new BrowserWindow({width: 1280, height: 840, backgroundColor:'#2e2c29'})
-  mainWindow = new BrowserWindow({width: 1280, height: 840, backgroundColor:'#222'})
+  mainWindow = new BrowserWindow({width: 1280, height: 880, backgroundColor:'#222'})
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -54,8 +54,8 @@ app.on('ready', function(){
   createWindow();
   if(!isDev()){
     log.info('production mode');
-    //autoUpdater.checkForUpdates();
-    autoUpdater.checkForUpdatesAndNotify();
+    autoUpdater.checkForUpdates();
+    //autoUpdater.checkForUpdatesAndNotify();
   }
 })
 
@@ -87,18 +87,22 @@ autoUpdater.on('checking-for-update', () => {
 */
 
 autoUpdater.on('update-available', (info) => {
+  log.info(info)
   mainWindow.webContents.send('updateAvail')
 });
 
 autoUpdater.on('update-not-available', (info) => {
+  log.info(info)
   mainWindow.webContents.send('updateNotAvail')
 });
 
 autoUpdater.on('download-progress', (progressInfo) => {
+  log.info(progressInfo)
   mainWindow.webContents.send('progress')
 });
 
 autoUpdater.on('update-downloaded', (info) => {
+  log.info(info)
   mainWindow.webContents.send('updateReady')
 });
 
@@ -109,6 +113,12 @@ autoUpdater.on('error', (err) => {
 // when receiving a quitAndInstall signal, quit and install the new version ;)
 ipcMain.on("quitAndInstall", (event, arg) => {
   autoUpdater.quitAndInstall();
+})
+
+ipcMain.on('progress', (event, arg) => {
+  log.info(arg.progress)
+  log.info(arg.mode)
+  mainWindow.setProgressBar(arg.progress, {mode : arg.mode});
 })
 
 function isDev() {

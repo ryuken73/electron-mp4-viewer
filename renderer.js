@@ -53,9 +53,11 @@ var logger = tracer.console(
 						});
                     },
                     */
+                    /*
 					function(data){
 						console.log(data.output);
                     },
+                    */
                     function(data){
                         UKlogger(data.output);
                     }
@@ -172,11 +174,14 @@ ipcRenderer.on('progress', function(progress) {
 
 ipcRenderer.on('updateReady', function(event, text) {
     logger.info('new version ready');
+    ipcRenderer.send('quitAndInstall');
 })
 
 ipcRenderer.on('updateErr', function(err) {
     logger.error('update error : %j', err);
 })
+
+
 
 // var cwd = process.cwd();
 // var resourceDir = process.resourcesPath;
@@ -233,7 +238,7 @@ d3.select('#videoPlayer').on('loadstart',function(){
             var origDiv = d3.select('#orig');
             addLoadBtn(origDiv, 'orig');
             enableMainBtn();
-            d3.select('.load-orig').dispatch('click');
+            //d3.select('.load-orig').dispatch('click');
         })    
     }
 
@@ -344,26 +349,22 @@ d3.select('#upload').on('click', function(){
         .classed('uk-button-primary',true)
         .classed('uk-position-center-right',true)
         .classed('uk-position-medium', true)
-        .text('전송취소')
-        // UI end
+        .text('전송취소');
 
         d3.select('#cancel').on('click', function(){
             logger.info('전송취소... %s',fullname);
-            d3.select('#modalProgress').text('취소중..');
-            /*
-            c.destroy(function(){
-                logger.info('ftp connection destroyed');
-                readStream.destroy();
-                  //UIkit.modal('#procModal').hide();
-            })
-            */
+            //d3.select('#modalProgress').text('취소중..');
+            logger.info('canceled');
             c.abort(function(err){
                 logger.info('connection aborted');
                 logger.error(err);
             })
             readStream.destroy();
             UIkit.modal('#procModal').hide();
+            ipcRenderer.send('progress', {progress : 0, mode:'none'});
         })
+        // UI end
+
 
 
         var readStream = fs.createReadStream(fullname);
@@ -372,14 +373,17 @@ d3.select('#upload').on('click', function(){
 
         readStream.on('data',function(d){
             progressed += d.length;
-            var percent = (progressed/total*100).toFixed(1) + '% complete';
+            var percent = (progressed/total*100).toFixed(1);
             //logger.info(percent);
-            d3.select('#progress').text(' : ' + percent);
+            d3.select('#progress').text(' : ' + percent + '% complete');
+            var trayProgress = percent / 100;
+            ipcRenderer.send('progress', {progress : trayProgress, mode:'normal'});
         })
 
         readStream.on('error',function(err){
             logger.error(err);
             UKalert(err);
+            ipcRenderer.send('progress', {progress : 0, mode:'none'});
         })
 
         c.cwd(targetDir, function(err,pathname){
@@ -392,11 +396,13 @@ d3.select('#upload').on('click', function(){
                         logger.error(err);
                         UKalert(err);
                         UIkit.modal('#procModal').hide();
+                        ipcRenderer.send('progress', {progress : 0, mode:'none'});
                     }else{
                         logger.info('ftp upload success : %s', targetname);
                         c.end()
                         UIkit.modal('#procModal').hide();
-                        UKalert('stream url : ' + WOWZAURL + ' ' + targetname);
+                        UKalert('stream url : ' + WOWZAURL + targetname);
+                        ipcRenderer.send('progress', {progress : 0, mode:'none'});
                     }
                 })
             }
@@ -727,6 +733,7 @@ function startConvert(){
             d3.select('button.load-conv').remove();
             d3.select('#cancel').on('click', function(){
                 d3.select('#modalProgress').text('취소중..');
+                ipcRenderer.send('progress', {progress : 0, mode:'none'});
                 command.kill();
             })
         })
@@ -734,8 +741,14 @@ function startConvert(){
             logger.info(progress);
             logger.info('Processing: ' + progress.percent + '% done');
             var remainSec = guessRemainSeconds(origSize, progress.percent, startMSec).toFixed(1);
-            logger.info('%d, %d', startMSec, remainSec);
-            d3.select('#progress').text(' : ' + progress.percent.toFixed(2) + '% , Remains : ' + remainSec + ' s');
+            var remainHMS = new Date(remainSec * 1000).toISOString().substr(11,8);
+            var elapsedSec = getElapsedSconds(startMSec).toFixed(1);
+            var elapsedHMS = new Date(elapsedSec * 1000).toISOString().substr(11,8);
+            logger.info('%d, %d', startMSec, remainHMS, elapsedHMS);
+            d3.select('#progress').text(' : ' + progress.percent.toFixed(2) + '% ,  Remains : ' + remainHMS + ',  Elapsed : ' + elapsedHMS);
+
+            var trayProgress = progress.percent / 100 ;
+            ipcRenderer.send('progress', {progress : trayProgress, mode:'normal'});
         })
         .on('stderr', function(stderrLine) {
             logger.info('Stderr output: ' + stderrLine);
@@ -748,6 +761,7 @@ function startConvert(){
                 logger.info('file delete success! : %s', convFname);
             })
             enableDropOnBody();
+            ipcRenderer.send('progress', {progress : 0, mode:'none'});
         })
         .on('end', function(stdout, stderr) {
             logger.info('Transcoding succeeded !');
@@ -767,9 +781,11 @@ function startConvert(){
                 d3.select('.load-conv').dispatch('click');
             })   
             enableDropOnBody();  
+            ipcRenderer.send('progress', {progress : 0, mode:'none'});
         })
         .save(convFname);
 }
+
 
 function guessRemainSeconds(fullSize, processedPercent, start){
     var now = new Date();
@@ -782,6 +798,14 @@ function guessRemainSeconds(fullSize, processedPercent, start){
     var estimatedRemains = remains / processSpeed;
     return estimatedRemains;
 }
+
+function getElapsedSconds(start){
+    var now = new Date();
+    var nowMsec = now.getTime();
+    var elapsedSec = (nowMsec - start) / 1000;
+    return elapsedSec;
+}
+
 
 /*
 d3.select("#convert").on('click',function(){
@@ -915,11 +939,11 @@ function addLoadBtn(ele, from){
     var btnClass = 'load-' + from;
     ele.append('button')
     .classed('uk-button',true)
-    .classed('uk-button-primary',true)
+    .classed('uk-button-secondary',true)
     .classed('uk-width-1-1',true)
     .classed('panelBtn', true)
     .classed(btnClass,true)
-    .text('Load')
+    .text('LOADED')
     .on('click',function(){
         var fullname = ele.attr('fullname');
         // set title
@@ -931,7 +955,7 @@ function addLoadBtn(ele, from){
         var origBtnClass = 'load-orig';
         var convBtnClass = 'load-conv';
         d3.select(this)
-        .classed('uk-button-primary',false)
+        .classed('uk-button-default',false)
         .classed('uk-button-secondary',true)
         .text('Loaded');
         
@@ -966,7 +990,7 @@ function UKlogger(msg){
     .text(msg)
 
     var msgPanel = d3.select('#msgPanel');
-    console.log('height : ' + msgPanel.property('scrollHeight'));
+    //console.log('height : ' + msgPanel.property('scrollHeight'));
     d3.select('#msgPanel').property('scrollTop', msgPanel.property('scrollHeight'));
     //msgPanel.scrollTop = msgPanel.scrollHeight;
 
