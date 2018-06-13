@@ -1,6 +1,6 @@
 {
   "name": "electron-mp4-converter",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "simple media reformatter for SBS (by ryuken)",
   "main": "main.js",
   "scripts": {

@@ -180,14 +180,10 @@ ipcRenderer.on('updateReady', function(event, text) {
 ipcRenderer.on('updateErr', function(err) {
     logger.error('update error : %j', err);
 })
+//
 
 
-
-// var cwd = process.cwd();
-// var resourceDir = process.resourcesPath;
 var appPath = remote.app.getAppPath();
-//logger.info('cwd : %s', cwd); 
-//logger.info('resource dir : %s', resourceDir);
 logger.info('appPath : %s', appPath);
 
 var ffmpegPath = path.join(appPath, '../bin');
@@ -196,8 +192,6 @@ var ffprobeBin = 'ffprobe.exe';
 
 ffmpeg.setFfmpegPath(path.join(ffmpegPath,  ffmpegBin));
 ffmpeg.setFfprobePath(path.join(ffmpegPath, ffprobeBin));
-
-
 
 d3.selection().on('dragover', function(e){
     d3.event.preventDefault();
@@ -212,15 +206,6 @@ d3.select('#videoPlayer').on('loadstart',function(){
     d3.select('#capture').attr('disabled',null);
     d3.select('#upload').attr('disabled',null);
     var from = d3.select(this).attr('from');
-    /*
-    var btnClass;
-    if(from === 'drop'){        
-        btnClass = '.load-orig';
-    } else {
-        btnClass = '.load-conv';
-    }
-    UIkit.icon(btnClass,{'icon': 'check'});
-    */
     
     if(from === 'drop'){
         showModal('메타정보 추출중...');
@@ -806,107 +791,6 @@ function getElapsedSconds(start){
     return elapsedSec;
 }
 
-
-/*
-d3.select("#convert").on('click',function(){
-
-    // 변환시작 -> 기존 progress 정보 삭제
-    d3.select('#progressBody').remove();
-
-    // progress HTML 생성
-    d3.select('#procModalBody')
-    .append('p')
-    .attr('id','progressBody')
-    .text('Converting Processed ')
-    .append('span')
-    .attr('id','progress')
-
-    // progress HTML에 cancel button 추가
-    d3.select('#procModalBody')
-    .select('p')     
-    .append('span')
-    .append('button')
-    .attr('id','cancel')
-    .classed('uk-button',true)
-    .classed('uk-button-small',true)
-    .classed('uk-button-primary',true)
-    .classed('uk-position-center-right',true)
-    .classed('uk-position-medium', true)
-    .text('변환취소')
-   
-    // output 파일 postfix를 위한 현재 timestamp 구하기
-    var now = new Date();
-
-    // output 파일 fullname 설정
-    var origFname = d3.select('#videoPlayer').attr('src');
-    if(!origFname){
-        UKalert('먼저 소스 영상을 drag & drop 하시기 바랍니다.')
-        logger.error('변환 대상 파일 없음!')
-        return false;
-    }
-    var origPath = path.dirname(origFname);
-    var origExtn = path.extname(origFname);
-    var origBase = path.basename(origFname,origExtn);
-    var convBase = origBase + '_' + now.getTime();
-
-    var customExtn = d3.select('#ext').property('value');
-    var ext = customExtn ? '.' + customExtn : origExtn
-    var convFname = path.join(origPath,convBase) + ext;
-    //
-
-    logger.info('convert start : %s', origFname);
-    
-    var command = ffmpeg(origFname)
-        .videoCodec('libx264')
-        .on('start', function(commandLine) {
-            UIkit.modal('#procModal').show();
-            disableDropOnBody();
-            logger.info('Spawned Ffmpeg with command: ' + commandLine);
-            d3.select('button.load-conv').remove();
-            d3.select('#cancel').on('click', function(){
-                d3.select('#modalProgress').text('취소중..');
-                command.kill();
-            })
-        })
-        .on('progress', function(progress) {
-            logger.info('Processing: ' + progress.percent + '% done');
-            d3.select('#progress').text(' : ' + progress.percent.toFixed(2) + '% ');
-        })
-        .on('stderr', function(stderrLine) {
-            logger.info('Stderr output: ' + stderrLine);
-        })
-        .on('error', function(err, stdout, stderr) {
-            logger.error('Cannot process video: ' + err.message);
-            UIkit.modal('#procModal').hide();
-            fs.unlink(convFname,function(err){
-                if(err) logger.error(err);
-                logger.info('file delete success! : %s', convFname);
-            })
-            enableDropOnBody();
-        })
-        .on('end', function(stdout, stderr) {
-            logger.info('Transcoding succeeded !');
-            //UIkit.modal('#modalProgress').hide();
-            UIkit.modal('#procModal').hide();
-            getMeta(convFname,function(err, streamInfo, formatInfo){              
-                var beforePanelElement = d3.select('#afterPanelStream');
-                var beforeformatElement = d3.select('#afterPanelFormat');
-        
-                putPanelInfo(beforePanelElement, streamInfo);
-                putPanelInfo(beforeformatElement, formatInfo);
-
-                var convDiv = d3.select('#conv');
-                convDiv.attr('fullname',convFname);
-                enableMainBtn();
-                addLoadBtn(convDiv,'conv');
-                d3.select('.load-conv').dispatch('click');
-            })   
-            enableDropOnBody();  
-        })
-        .save(convFname);
-});
-*/
-
 function enableMainBtn(){
     var convBtn = d3.select('#convert');
     var captBtn = d3.select('#capture');
@@ -1263,43 +1147,3 @@ function insertRows(serverConfigs){
         logger.info('save success! : %j', server);       
     })
 }
-const {Menu, MenuItem} = remote
-
-const menu = new Menu()
-menu.append(new MenuItem({label: 'MenuItem1', click() { console.log('item 1 clicked') }}))
-menu.append(new MenuItem({type: 'separator'}))
-menu.append(new MenuItem({label: 'MenuItem2', type: 'checkbox', checked: true}))
-
-window.addEventListener('contextmenu', (e) => {
-  e.preventDefault()
-  menu.popup({window: remote.getCurrentWindow()})
-}, false)
-/*
-// make modal windows
-// too slow
-d3.select('#ftpConfig').on('click',function(){
-    var configHTML = path.join(__dirname,"config.html");
-    var top = remote.getCurrentWindow();
-    console.log(top)
-    var winOpts = {
-        parent : remote.getCurrentWindow(),
-        width: 1024, 
-        height: 768,
-        modal : true,
-        show : false,
-        frame : true
-    }
-    let child = new remote.BrowserWindow(winOpts);
-    child.on('close', function(){
-        child = null;
-    });
-    child.loadURL(url.format({
-        pathname: configHTML,
-        protocol: 'file:',
-        slashes: true
-    }));
-    child.once('ready-to-show',function(){
-        child.show();
-    })
-})
-*/

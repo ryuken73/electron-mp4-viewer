@@ -1,44 +1,52 @@
-# electron-quick-start
+# Simple Media Converter Using Electron
 
-**Clone and run for a quick way to see Electron in action.**
+**Can download prebuilt binary for Windows from here And Test**
 
-This is a minimal Electron application based on the [Quick Start Guide](https://electronjs.org/docs/tutorial/quick-start) within the Electron documentation.
+This is a simple Electron Application to handling single Media file (play,convert,capture,upload) 
 
-**Use this app along with the [Electron API Demos](https://electronjs.org/#get-started) app for API code examples to help you get started.**
+**If you need to convert various media format to standard h.264, this can be helpful!**
 
-A basic Electron application needs just these files:
+Use below modules
 
-- `package.json` - Points to the app's main file and lists its details and dependencies.
-- `main.js` - Starts the app and creates a browser window to render HTML. This is the app's **main process**.
-- `index.html` - A web page to render. This is the app's **renderer process**.
-
-You can learn more about each of these components within the [Quick Start Guide](https://electronjs.org/docs/tutorial/quick-start).
+- `UIKit` - UI framework
+- `ffmpeg-fluent.js` - media format info extraction and conversion
+- `node-thumbnail` - make thumbnail
+- `node-ftp` - upload media to ftp server
 
 ## To Use
 
-To clone and run this repository you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
-
+1. Install
 ```bash
 # Clone this repository
-git clone https://github.com/electron/electron-quick-start
-# Go into the repository
-cd electron-quick-start
+git clone https://github.com/ryuken73/electron-mp4-viewer.git
 # Install dependencies
 npm install
 # Run the app
 npm start
 ```
+2. Load Media
+- Just Drag and Drop Media
+- Then ffprobe extract media info and load video player
+- Only html5 vedio tag compatible media can be loaded
 
-Note: If you're using Linux Bash for Windows, [see this guide](https://www.howtogeek.com/261575/how-to-run-graphical-linux-desktop-applications-from-windows-10s-bash-shell/) or use `node` from the command prompt.
+3. Convert Media
+- Click Convert Button
+- Select media type (type can be any format supported by ffmpeg)
 
-## Resources for Learning Electron
+4. Capture Scene
+- Click Capture Button
+- Can be captured during playing and paused state
+- Can preview thumbnail and navigate using UIkit thumbnav
+- Captured images and thumbnails are saved same directory media exists
+  
+5. Register FTP Server Info
+- Click Server Name + 
+- Click Add Button and write ftp connection info
+- Click Save Button to save ftp connection informations to chromium localStorage
 
-- [electronjs.org/docs](https://electronjs.org/docs) - all of Electron's documentation
-- [electronjs.org/community#boilerplates](https://electronjs.org/community#boilerplates) - sample starter apps created by the community
-- [electron/electron-quick-start](https://github.com/electron/electron-quick-start) - a very basic starter Electron app
-- [electron/simple-samples](https://github.com/electron/simple-samples) - small applications with ideas for taking them further
-- [electron/electron-api-demos](https://github.com/electron/electron-api-demos) - an Electron app that teaches you how to use Electron
-- [hokein/electron-sample-apps](https://github.com/hokein/electron-sample-apps) - small demo apps for the various Electron APIs
+6. Upload Media
+- Select Server from Server Configuration Pannel
+- Click Upload Button
 
 ## License
 

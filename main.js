@@ -54,8 +54,8 @@ app.on('ready', function(){
   createWindow();
   if(!isDev()){
     log.info('production mode');
-    autoUpdater.checkForUpdates();
-    //autoUpdater.checkForUpdatesAndNotify();
+    //autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdatesAndNotify();
   }
 })
 
