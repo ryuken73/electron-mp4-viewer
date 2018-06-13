@@ -8,3 +8,12 @@ textarea {
     height : 100px;
     resize : none;
 }
+
+button:disabled {
+    color : gray;
+    background-color : darkgray;
+}
+
+video {
+    background-color : rgba(255,255,255,.1)
+}

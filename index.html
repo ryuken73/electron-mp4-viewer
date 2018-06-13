@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="./uikit.min.css" />
     <link rel="stylesheet" href="./render.css" />
-    <title>Fix Your mp4 (by ryuken @SBS)</title>
+    <title> Simple Media Converter ( by ryuken@SBS )</title>
   </head>
   <body class="uk-light uk-background-secondary" style="overflow-y:scroll">
 
@@ -18,23 +18,28 @@
             <video id="videoPlayer" width="100%" height="100%" controls></video>
             <p></p> 
             <div>
-              <div class="uk-text-center uk-child-width-expand" uk-grid>
-                <div>
-                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up uk-button-small " id="convert">변환</button>
+              <div class="uk-text-center" uk-grid>
+                <div class="uk-grid-small uk-width-1-2" uk-grid>
+                  <div class="uk-width-expand">
+                    <button class="uk-button uk-animation-scale-up uk-button-small uk-width-1-1" id="convert" disabled>변환</button>
+                  </div>
+                  <div class="uk-width-1-3">
+                    <input class="uk-input uk-animation-scale-up uk-form-small uk-text-center" id="ext" value="mp4"></input>
+                  </div>
                 </div>
-                <div>
-                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up uk-button-small" id="capture" disabled>캡쳐</button>
+                <div class="uk-width-expand">
+                  <button class="uk-button uk-width-1-1 uk-animation-scale-up uk-button-small" id="capture" disabled>캡쳐</button>
                 </div>
                 <!-- <button class="uk-button uk-width-1-4 uk-button-default uk-animation-scale-up" id="fileMgr" disabled>경로열기</button>-->
-                <div>
-                  <button class="uk-button uk-button-default uk-width-1-1 uk-animation-scale-up uk-button-small" id="upload" disabled>업로드</button>
+                <div class="uk-width-expand">
+                  <button class="uk-button uk-width-1-1 uk-animation-scale-up uk-button-small" id="upload" disabled>업로드</button>
                 </div>
               </div>
             </div>
           </div>  <!-- end of first column -->
 
           <div class="uk-width-1-4" id="orig">
-            <p class="uk-text-small">변환전</p>
+            <button class="uk-button uk-button-text uk-text-small">변환전</button>
             <p class='uk-margin-small'></p> 
             <div class='uk-textarea uk-height-small ' id="beforePanelStream"></div>
             <p>
@@ -43,7 +48,7 @@
           </div> <!-- end of second column -->
 
           <div class="uk-width-1-4" id="conv">
-            <p class="uk-text-small">변환후</p>
+            <button class="uk-button uk-button-text uk-text-small">변환후</button>
             <p class='uk-margin-small'></p> 
             <div class='uk-textarea uk-height-small ' id="afterPanelStream"></div>
             <p>
@@ -64,11 +69,11 @@
         </div>
         <hr>        
         <div class="uk-grid uk-grid-small uk-child-width-expand" id="current" uk-grid>
-          <div class="uk-text-small">Server Name<a href="#1" id="ftpConfig" style="font-size:12px"> + </a><input class="uk-input uk-form-small" id="servername"></div>
-          <div class="uk-text-small">IP<input class="uk-input uk-form-small" id="ip"></div>
-          <div class="uk-text-small">ID<input class="uk-input uk-form-small" id="id"></div>
-          <div class="uk-text-small">PWD<input class="uk-input uk-form-small" type="password" id="pwd"></div>
-          <div class="uk-text-small">PATH<input class="uk-input uk-form-small" id="path"></div>
+          <div class="uk-text-small uk-heading-bullet">Server Name<a href="#1" id="ftpConfig" style="font-size:12px"> + </a><input class="uk-input uk-form-small" id="servername"></div>
+          <div class="uk-text-small uk-heading-bullet">IP<input class="uk-input uk-form-small" id="ip"></div>
+          <div class="uk-text-small uk-heading-bullet">ID<input class="uk-input uk-form-small" id="id"></div>
+          <div class="uk-text-small uk-heading-bullet">PWD<input class="uk-input uk-form-small" type="password" id="pwd"></div>
+          <div class="uk-text-small uk-heading-bullet">PATH<input class="uk-input uk-form-small" id="path"></div>
         </div>
         <p class="uk-margin-small"></p>
 

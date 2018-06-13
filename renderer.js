@@ -6,7 +6,6 @@ var UIkit = require('./uikit.min.js');
 var bar = document.getElementById('js-progressbar');
 var ffmpeg = require('fluent-ffmpeg');
 var path = require('path');
-var ffmpegPath = './bin';
 var fs = require('fs');
 var url = require('url');
 var thumb = require('node-thumbnail').thumb;
@@ -16,11 +15,6 @@ const {BrowserWindow} = require('electron');
 var {remote} = require('electron');
 
 var WOWZAURL = 'hdretv.sbs.co.kr:1935/STREAM/_definst_/mp4:/SBSNOW/';
-
-
-ffmpeg.setFfmpegPath(path.join(ffmpegPath, 'ffmpeg.exe'));
-ffmpeg.setFfprobePath(path.join(ffmpegPath, 'ffprobe.exe'));
-
 
 /* camera rendering
 var errorCallback = function(e) {
@@ -146,7 +140,22 @@ function disableDropOnBody(){
     });
 }
 
-//
+// main
+// var cwd = process.cwd();
+// var resourceDir = process.resourcesPath;
+var appPath = remote.app.getAppPath();
+//logger.info('cwd : %s', cwd); 
+//logger.info('resource dir : %s', resourceDir);
+logger.info('appPath : %s', appPath);
+
+var ffmpegPath = path.join(appPath, '../bin');
+var ffmpegBin  = 'ffmpeg.exe';
+var ffprobeBin = 'ffprobe.exe';
+
+ffmpeg.setFfmpegPath(path.join(ffmpegPath,  ffmpegBin));
+ffmpeg.setFfprobePath(path.join(ffmpegPath, ffprobeBin));
+
+
 
 d3.selection().on('dragover', function(e){
     d3.event.preventDefault();
@@ -186,6 +195,7 @@ d3.select('#videoPlayer').on('loadstart',function(){
 
             var origDiv = d3.select('#orig');
             addLoadBtn(origDiv, 'orig');
+            enableMainBtn();
             d3.select('.load-orig').dispatch('click');
         })    
     }
@@ -195,22 +205,27 @@ d3.select('#videoPlayer').on('loadstart',function(){
 function getMeta(fname,callback){
     ffmpeg.ffprobe(fname, function(err,metadata){
         if(err){
-            logger.error(err);
-            
+            logger.error(err);       
+            disableMainBtn();     
         }
 
         var streamInfo = metadata.streams ? metadata.streams : {'streamInfo':'none',};
         var formatInfo = metadata.format ? metadata.format : {'formatInfo':'none',};
-        var streamInfoArray1 = JSON.stringify(streamInfo[0]).split(',');  
+        var streamInfoArray = JSON.stringify(streamInfo[0]).split(',');  
         var formatInfoArray = JSON.stringify(formatInfo).split(',');
         if(formatInfo.nb_streams == 2){
             var streamInfoArray2 = JSON.stringify(streamInfo[1]).split(',');
+            var divider = '----------------------------------------';
+            streamInfoArray.push(divider);
+            streamInfoArray2.map(function(info){
+                streamInfoArray.push(info);
+            })
         }
         
         logger.info(streamInfo);
         logger.info(formatInfoArray);
 
-        callback(null, streamInfoArray1,formatInfoArray);
+        callback(null, streamInfoArray,formatInfoArray);
     })
 }
 
@@ -225,7 +240,7 @@ d3.select('#videoPlayer').on('error',function(){
     //var userMsg = '<span class="uk-text-small">오류 : video loading error : code = ' + errCode + ' , msg = ' + errMsg + '</span>'; 
     var userMsg = '오류 : video loading error : code = ' + errCode + ' , msg = ' + errMsg ;
     // error code ref : https://developer.mozilla.org/ko/docs/Web/API/MediaError
-    console.log(userMsg);
+    logger.error(userMsg);
     UKalert(userMsg);
 
     /*
@@ -512,6 +527,159 @@ observer.observe(targetNode, mutationConfig);
 
 d3.select("#convert").on('click',function(){
 
+    logger.info('convert click');
+
+    // 기존 modal body 삭제
+    d3.select('#progressBody').remove();
+
+    // 확장장 선택지
+    d3.select('#procModalBody')
+    .append('p')
+    .attr('id','progressBody')
+    .text('확장자를 선택하세요! : ')
+    .append('span')
+    .attr('id','progress')
+
+    var customExtn = d3.select('#ext').property('value');
+
+    // input box 추가
+    d3.select('#procModalBody')
+    .select('p')     
+    .append('span')  
+    .append('input')
+    .classed('uk-input',true)
+    .classed('uk-form-small',true)
+    .classed('uk-form-width-small',true)
+    .classed('uk-text-center',true)
+    .classed('uk-margin-left',true)    
+    .attr('id','customExtn')
+    .property('value', customExtn)
+
+
+    // progress HTML에 cancel button 추가
+    d3.select('#procModalBody')
+    .select('p')     
+    .append('span')
+    .append('button')
+    .attr('id','extnSubmit')
+    .classed('uk-button',true)
+    .classed('uk-button-small',true)
+    .classed('uk-button-primary',true)
+    .classed('uk-position-center-right',true)
+    .classed('uk-position-medium', true)
+    .text('확인')
+    .on('click',function(){                
+        logger.info('select extension done!');
+        var changedExtn = d3.select('#customExtn').property('value');
+        d3.select('#ext').property('value',changedExtn);
+        startConvert();
+    })    
+    UIkit.modal('#procModal').show();
+
+});
+
+function startConvert(){
+
+    d3.select('#progressBody').remove();
+
+    // progress HTML 생성
+    d3.select('#procModalBody')
+    .append('p')
+    .attr('id','progressBody')
+    .text('Converting Processed ')
+    .append('span')
+    .attr('id','progress')
+
+    // progress HTML에 cancel button 추가
+    d3.select('#procModalBody')
+    .select('p')     
+    .append('span')
+    .append('button')
+    .attr('id','cancel')
+    .classed('uk-button',true)
+    .classed('uk-button-small',true)
+    .classed('uk-button-primary',true)
+    .classed('uk-position-center-right',true)
+    .classed('uk-position-medium', true)
+    .text('변환취소')
+   
+    // output 파일 postfix를 위한 현재 timestamp 구하기
+    var now = new Date();
+
+    // output 파일 fullname 설정
+    var origFname = d3.select('#videoPlayer').attr('src');
+    if(!origFname){
+        UKalert('먼저 소스 영상을 drag & drop 하시기 바랍니다.')
+        logger.error('변환 대상 파일 없음!')
+        return false;
+    }
+    var origPath = path.dirname(origFname);
+    var origExtn = path.extname(origFname);
+    var origBase = path.basename(origFname,origExtn);
+    var convBase = origBase + '_' + now.getTime();
+
+    var customExtn = d3.select('#ext').property('value');
+    var ext = customExtn ? '.' + customExtn : origExtn
+    var convFname = path.join(origPath,convBase) + ext;
+    //
+
+    logger.info('convert start : %s', origFname);
+    
+    var command = ffmpeg(origFname)
+        .videoCodec('libx264')
+        .on('start', function(commandLine) {
+            logger.info('convert start');
+            //UIkit.modal('#procModal').show();
+            disableDropOnBody();
+            logger.info('Spawned Ffmpeg with command: ' + commandLine);
+            d3.select('button.load-conv').remove();
+            d3.select('#cancel').on('click', function(){
+                d3.select('#modalProgress').text('취소중..');
+                command.kill();
+            })
+        })
+        .on('progress', function(progress) {
+            logger.info('Processing: ' + progress.percent + '% done');
+            d3.select('#progress').text(' : ' + progress.percent.toFixed(2) + '% ');
+        })
+        .on('stderr', function(stderrLine) {
+            logger.info('Stderr output: ' + stderrLine);
+        })
+        .on('error', function(err, stdout, stderr) {
+            logger.error('Cannot process video: ' + err.message);
+            UIkit.modal('#procModal').hide();
+            fs.unlink(convFname,function(err){
+                if(err) logger.error(err);
+                logger.info('file delete success! : %s', convFname);
+            })
+            enableDropOnBody();
+        })
+        .on('end', function(stdout, stderr) {
+            logger.info('Transcoding succeeded !');
+            //UIkit.modal('#modalProgress').hide();
+            UIkit.modal('#procModal').hide();
+            getMeta(convFname,function(err, streamInfo, formatInfo){              
+                var beforePanelElement = d3.select('#afterPanelStream');
+                var beforeformatElement = d3.select('#afterPanelFormat');
+        
+                putPanelInfo(beforePanelElement, streamInfo);
+                putPanelInfo(beforeformatElement, formatInfo);
+
+                var convDiv = d3.select('#conv');
+                convDiv.attr('fullname',convFname);
+                enableMainBtn();
+                addLoadBtn(convDiv,'conv');
+                d3.select('.load-conv').dispatch('click');
+            })   
+            enableDropOnBody();  
+        })
+        .save(convFname);
+}
+
+
+/*
+d3.select("#convert").on('click',function(){
+
     // 변환시작 -> 기존 progress 정보 삭제
     d3.select('#progressBody').remove();
 
@@ -550,7 +718,10 @@ d3.select("#convert").on('click',function(){
     var origExtn = path.extname(origFname);
     var origBase = path.basename(origFname,origExtn);
     var convBase = origBase + '_' + now.getTime();
-    var convFname = path.join(origPath,convBase) + origExtn;
+
+    var customExtn = d3.select('#ext').property('value');
+    var ext = customExtn ? '.' + customExtn : origExtn
+    var convFname = path.join(origPath,convBase) + ext;
     //
 
     logger.info('convert start : %s', origFname);
@@ -596,6 +767,7 @@ d3.select("#convert").on('click',function(){
 
                 var convDiv = d3.select('#conv');
                 convDiv.attr('fullname',convFname);
+                enableMainBtn();
                 addLoadBtn(convDiv,'conv');
                 d3.select('.load-conv').dispatch('click');
             })   
@@ -603,6 +775,33 @@ d3.select("#convert").on('click',function(){
         })
         .save(convFname);
 });
+*/
+
+function enableMainBtn(){
+    var convBtn = d3.select('#convert');
+    var captBtn = d3.select('#capture');
+    var uploadBtn = d3.select('#upload');
+
+    convBtn.classed('uk-button-default',true);
+    convBtn.attr('disabled',null);
+    captBtn.classed('uk-button-default',true);
+    captBtn.attr('disabled',null);
+    uploadBtn.classed('uk-button-default',true);
+    uploadBtn.attr('disabled',null);
+}
+
+function disableMainBtn(){
+    var convBtn = d3.select('#convert');
+    var captBtn = d3.select('#capture');
+    var uploadBtn = d3.select('#upload');
+
+    convBtn.classed('uk-button-default',false);
+    convBtn.attr('disabled','');
+    captBtn.classed('uk-button-default',false);
+    captBtn.attr('disabled','');
+    uploadBtn.classed('uk-button-default',false);
+    uploadBtn.attr('disabled','');
+}
 
 function addLoadBtn(ele, from){
 
@@ -630,10 +829,11 @@ function addLoadBtn(ele, from){
         .classed('uk-button-secondary',true)
         .text('Loaded');
         
+        // toggle previous loaded button
         var prevBtnClass = btnClass == origBtnClass ? convBtnClass : origBtnClass;
         d3.select('.' + prevBtnClass)
         .classed('uk-button-secondary',false)
-        .classed('uk-button-primary',true)
+        .classed('uk-button-default',true)
         .text('Load');       
     })
 }
