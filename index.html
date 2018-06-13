@@ -18,7 +18,7 @@
             <video id="videoPlayer" width="100%" height="100%" controls></video>
             <p></p> 
             <div>
-              <div class="uk-text-center" uk-grid>
+              <div class="uk-text-center uk-grid-small" uk-grid>
                 <div class="uk-grid-small uk-width-1-2" uk-grid>
                   <div class="uk-width-expand">
                     <button class="uk-button uk-animation-scale-up uk-button-small uk-width-1-1" id="convert" disabled>변환</button>
@@ -39,7 +39,7 @@
           </div>  <!-- end of first column -->
 
           <div class="uk-width-1-4" id="orig">
-            <button class="uk-button uk-button-text uk-text-small">변환전</button>
+            <button class="uk-button uk-button-text uk-text-small" id="origFopen">변환전</button>
             <p class='uk-margin-small'></p> 
             <div class='uk-textarea uk-height-small ' id="beforePanelStream"></div>
             <p>
@@ -48,7 +48,7 @@
           </div> <!-- end of second column -->
 
           <div class="uk-width-1-4" id="conv">
-            <button class="uk-button uk-button-text uk-text-small">변환후</button>
+            <button class="uk-button uk-button-text uk-text-small" id="convFopen">변환후</button>
             <p class='uk-margin-small'></p> 
             <div class='uk-textarea uk-height-small ' id="afterPanelStream"></div>
             <p>
@@ -61,12 +61,22 @@
       <p class='uk-margin-small'></p> 
 
       <div class="uk-container"> 
-        <div uk-lightbox>
+
         <!-- <ul class="uk-thumbnav" uk-lightbox></ul> -->
-          <ul class="uk-thumbnav" id="thumbnav" uk-margin>
-            <li class="uk-hidden" id="liDelALL" ><button class="uk-button uk-button-danger uk-button-small" id="buttonDelALL">전체삭제</button></li>
-          </ul>
+        <hr class="uk-hidden" id="hrImage">
+        <div class="uk-grid uk-grid-small" uk-grid>
+          <div class="uk-width-1-10 uk-hidden" id="liDelALL">
+            <button class="uk-button uk-button-default uk-button-small" id="buttonDelALL">전체삭제</button>
+          </div>
+          <div class="uk-width-expand">
+            <ul class="uk-thumbnav" id="thumbnav" uk-margin uk-lightbox></ul>
+          </div>
         </div>
+        <!--
+          <ul class="uk-thumbnav" id="thumbnav" uk-margin>
+            <li class="uk-hidden" id="liDelALL" ><button class="uk-button uk-button-small" id="buttonDelALL">전체삭제</button></li>
+          </ul>
+        -->
         <hr>        
         <div class="uk-grid uk-grid-small uk-child-width-expand" id="current" uk-grid>
           <div class="uk-text-small uk-heading-bullet">Server Name<a href="#1" id="ftpConfig" style="font-size:12px"> + </a><input class="uk-input uk-form-small" id="servername"></div>

@@ -4,7 +4,8 @@
   "description": "mp4 converter for SBS (by ryuken)",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "inspect" : "electron --inspect=5858 ."
   },
   "repository": "https://github.com/ryuken73/electron-mp4-viewer.git",
   "keywords": [

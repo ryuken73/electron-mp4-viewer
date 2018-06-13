@@ -22,7 +22,7 @@ var errorCallback = function(e) {
   };
 
   // Not showing vendor prefixes.
-  navigator.getUserMedia({video: true, audio: true}, function(localMediaStream) {
+  navigator.getUserMedia({video: true, audio: true}, function(localMediaStream) 
     var video = document.querySelector('video');
     video.src = window.URL.createObjectURL(localMediaStream);
 
@@ -132,6 +132,16 @@ function enableDropOnBody(){
         */
     });
 }
+
+d3.select('#origFopen').on('click', function(){
+    var fullname = d3.select('#orig').attr('fullname');
+    shell.showItemInFolder(fullname);
+})
+
+d3.select('#convFopen').on('click', function(){
+    var fullname = d3.select('#conv').attr('fullname');
+    shell.showItemInFolder(fullname);
+})
 
 function disableDropOnBody(){
     d3.selection().on('drop', function(){
@@ -261,36 +271,22 @@ d3.select('#title').on('click', function(){
 d3.select('#upload').on('click', function(){
     logger.info('upload start!')
 
-    //upload 시작 -> 기존 progress 정보 삭제
-    d3.select('#progressBody').remove();
-
-    // progress HTML 생성
-    d3.select('#procModalBody')
-    .append('p')
-    .attr('id','progressBody')
-    .text('ftp transfer Processed ')
-    .append('span')
-    .attr('id','progress')
-
-    // progress HTML에 cancel button 추가
-    d3.select('#procModalBody')
-    .select('p')     
-    .append('span')
-    .append('button')
-    .attr('id','cancel')
-    .classed('uk-button',true)
-    .classed('uk-button-small',true)
-    .classed('uk-button-primary',true)
-    .classed('uk-position-center-right',true)
-    .classed('uk-position-medium', true)
-    .text('전송취소')
-    // UI end
-
     var connectionOpts = {};    
     connectionOpts.host = d3.select('#ip').property('value');
     connectionOpts.user = d3.select('#id').property('value');
     connectionOpts.password = d3.select('#pwd').property('value');
     logger.info('ftp connection info : %j', connectionOpts);
+
+    //upload 시작 -> 기존 progress 정보 삭제
+    d3.select('#progressBody').remove();
+
+    // make start message
+    d3.select('#procModalBody')
+    .append('p')
+    .attr('id','progressBody')
+    .text('trying to connect...... ' + connectionOpts.host)
+
+    UIkit.modal('#procModal').show();
 
     var now = new Date();
     var fullname = d3.select('#videoPlayer').attr('src');
@@ -303,8 +299,27 @@ d3.select('#upload').on('click', function(){
 
     var c = new ftp();
     c.on('ready',function(){
+        
+        // progress HTML 생성
+        d3.select('#progressBody')
+        .text('ftp transfer Processed ')
+        .append('span')
+        .attr('id','progress')
 
-        UIkit.modal('#procModal').show();
+        // progress HTML에 cancel button 추가
+        d3.select('#procModalBody')
+        .select('p')     
+        .append('span')
+        .append('button')
+        .attr('id','cancel')
+        .classed('uk-button',true)
+        .classed('uk-button-small',true)
+        .classed('uk-button-primary',true)
+        .classed('uk-position-center-right',true)
+        .classed('uk-position-medium', true)
+        .text('전송취소')
+        // UI end
+
         d3.select('#cancel').on('click', function(){
             logger.info('전송취소... %s',fullname);
             d3.select('#modalProgress').text('취소중..');
@@ -363,7 +378,9 @@ d3.select('#upload').on('click', function(){
     })  
     c.on('error', function(err){
         logger.error(err);
+        UIkit.modal('#procModal').hide();
         UKalert(err);
+
     })  
     c.connect(connectionOpts)
 })
@@ -435,20 +452,22 @@ d3.select('#capture').on('click', function(){
             //.text('image')
             .append('img')
             .attr('src', thumbnail);
-
+            /*
             var navSize = d3.select('ul.uk-thumbnav').selectAll('li').size();
-            var FIRST_THUMBNALE = (navSize == 2) ? true : false;
+            var FIRST_THUMBNALE = (navSize == 1) ? true : false;
             logger.info('navSize : %d, first ? : %j', navSize, FIRST_THUMBNALE);
 
             if(FIRST_THUMBNALE) {
+                logger.info('enable delall btn');
                 d3.select('#liDelALL').classed('uk-hidden',false);
                 d3.select('#liDelALL').classed('uk-visible',true);
             }
+            */
 
         })
         .then(null,function(err){
-            logger.error(err);
-            UKalert(err);
+            logger.error('thumbnail create failed! : %j',err);
+            UKalert('thumbnail create failed!');
         })
 
         UIkit.modal('#procModal').hide();
@@ -513,12 +532,24 @@ var observer = new MutationObserver(function(mutationList){
     logger.info(mutationList);
 
     var navSize = d3.select('ul.uk-thumbnav').selectAll('li').size();
-    var NO_THUMBNAILS = (navSize == 1) ? true : false;
-    logger.info('navSize : %d, no thumbnails ? : %j', navSize, NO_THUMBNAILS);
+    var NO_THUMBNAILS   = (navSize == 0) ? true : false;
+    var FIRST_THUMBNALE = (navSize == 1) ? true : false;
 
+    logger.info('navSize : %d', navSize);
+
+    if(FIRST_THUMBNALE) {
+        logger.info('show delAll btn');
+        d3.select('#liDelALL').classed('uk-hidden',false);
+        d3.select('#liDelALL').classed('uk-visible',true);
+        d3.select('hr#hrImage').classed('uk-hidden',false);
+        d3.select('hr#hrImage').classed('uk-visible',true);
+    }
     if(NO_THUMBNAILS) {
+        logger.info('hide delAll btn')
         d3.select('#liDelALL').classed('uk-visible',false);
         d3.select('#liDelALL').classed('uk-hidden',true);
+        d3.select('hr#hrImage').classed('uk-hidden',true);
+        d3.select('hr#hrImage').classed('uk-visible',false);
     }
 })
 observer.observe(targetNode, mutationConfig);
@@ -549,24 +580,34 @@ d3.select("#convert").on('click',function(){
     .append('input')
     .classed('uk-input',true)
     .classed('uk-form-small',true)
-    .classed('uk-form-width-small',true)
+    .classed('uk-form-width-xsmall',true)
     .classed('uk-text-center',true)
     .classed('uk-margin-left',true)    
     .attr('id','customExtn')
     .property('value', customExtn)
 
+    // progress HTML에 button grid 추가
+    d3.select('#procModalBody')
+    .select('p')
+    .append('div')
+    .classed('uk-grid',true)
+    .classed('uk-grid-small',true)
+    .classed('uk-width-1-2',true)
+    .classed('uk-position-center-right',true)
+    .classed('uk-position-small',true)
 
-    // progress HTML에 cancel button 추가
+    // button 추가
     d3.select('#procModalBody')
     .select('p')     
-    .append('span')
+    .select('div')
+    .append('div')
+    .classed('uk-width-expand',true)
     .append('button')
     .attr('id','extnSubmit')
     .classed('uk-button',true)
     .classed('uk-button-small',true)
     .classed('uk-button-primary',true)
-    .classed('uk-position-center-right',true)
-    .classed('uk-position-medium', true)
+    .classed('uk-width-1-1',true)
     .text('확인')
     .on('click',function(){                
         logger.info('select extension done!');
@@ -574,6 +615,25 @@ d3.select("#convert").on('click',function(){
         d3.select('#ext').property('value',changedExtn);
         startConvert();
     })    
+
+    d3.select('#procModalBody')
+    .select('p')   
+    .select('div')  
+    .append('div')
+    .classed('uk-width-expand',true)
+    .append('button')
+    .attr('id','extnCancel')
+    .classed('uk-button',true)
+    .classed('uk-button-small',true)
+    .classed('uk-button-primary',true)
+    .classed('uk-width-1-1',true)
+    .text('취소')
+    .on('click',function(){                
+        logger.info('convert cancel!');
+        UIkit.modal('#procModal').hide();
+
+    })    
+
     UIkit.modal('#procModal').show();
 
 });
@@ -586,9 +646,10 @@ function startConvert(){
     d3.select('#procModalBody')
     .append('p')
     .attr('id','progressBody')
-    .text('Converting Processed ')
+    .text('Processed ')
     .append('span')
     .attr('id','progress')
+    .text(' : 0%')
 
     // progress HTML에 cancel button 추가
     d3.select('#procModalBody')
@@ -621,6 +682,10 @@ function startConvert(){
     var customExtn = d3.select('#ext').property('value');
     var ext = customExtn ? '.' + customExtn : origExtn
     var convFname = path.join(origPath,convBase) + ext;
+
+    var origSize = fs.statSync(origFname).size;
+    var startTime = new Date();
+    var startMSec = startTime.getTime();
     //
 
     logger.info('convert start : %s', origFname);
@@ -639,8 +704,11 @@ function startConvert(){
             })
         })
         .on('progress', function(progress) {
+            logger.info(progress);
             logger.info('Processing: ' + progress.percent + '% done');
-            d3.select('#progress').text(' : ' + progress.percent.toFixed(2) + '% ');
+            var remainSec = guessRemainSeconds(origSize, progress.percent, startMSec).toFixed(1);
+            logger.info('%d, %d', startMSec, remainSec);
+            d3.select('#progress').text(' : ' + progress.percent.toFixed(2) + '% , Remains : ' + remainSec + ' s');
         })
         .on('stderr', function(stderrLine) {
             logger.info('Stderr output: ' + stderrLine);
@@ -676,6 +744,17 @@ function startConvert(){
         .save(convFname);
 }
 
+function guessRemainSeconds(fullSize, processedPercent, start){
+    var now = new Date();
+    var nowMsec = now.getTime();
+    var processedBytes = fullSize * (processedPercent/100);
+    var elapsedSec = (nowMsec - start) / 1000;
+    var processSpeed = processedBytes / elapsedSec;
+
+    var remains = fullSize - processedBytes;
+    var estimatedRemains = remains / processSpeed;
+    return estimatedRemains;
+}
 
 /*
 d3.select("#convert").on('click',function(){
