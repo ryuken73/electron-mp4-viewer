@@ -13,6 +13,7 @@ var ftp = require('ftp');
 const {shell} = require('electron');
 const {BrowserWindow} = require('electron');
 var {remote} = require('electron');
+const ipcRenderer = require('electron').ipcRenderer;
 
 var WOWZAURL = 'hdretv.sbs.co.kr:1935/STREAM/_definst_/mp4:/SBSNOW/';
 
@@ -151,6 +152,32 @@ function disableDropOnBody(){
 }
 
 // main
+
+// auto update 
+ipcRenderer.on('checkStart', function() {
+    logger.info('update check started!');    
+})
+
+ipcRenderer.on('updateAvail', function(info) {
+    logger.info('update available : %j', info);    
+})
+
+ipcRenderer.on('updateNotAvail', function(info) {
+    logger.info('update  Not available : %j', info);    
+})
+
+ipcRenderer.on('progress', function(progress) {
+    logger.info('update progress : %j', progress);    
+})
+
+ipcRenderer.on('updateReady', function(event, text) {
+    logger.info('new version ready');
+})
+
+ipcRenderer.on('updateErr', function(err) {
+    logger.error('update error : %j', err);
+})
+
 // var cwd = process.cwd();
 // var resourceDir = process.resourcesPath;
 var appPath = remote.app.getAppPath();

@@ -1,11 +1,11 @@
 {
   "name": "electron-mp4-converter",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "mp4 converter for SBS (by ryuken)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "inspect" : "electron --inspect=5858 ."
+    "inspect": "electron --inspect=5858 ."
   },
   "repository": "https://github.com/ryuken73/electron-mp4-viewer.git",
   "keywords": [
@@ -21,6 +21,8 @@
     "electron-rebuild": "^1.7.3"
   },
   "dependencies": {
+    "electron-log": "^2.2.14",
+    "electron-updater": "^2.21.10",
     "fluent-ffmpeg": "^2.1.2",
     "ftp": "^0.3.10",
     "leveldown": "^4.0.1",

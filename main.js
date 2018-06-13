@@ -4,6 +4,9 @@ const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
+const {autoUpdater} = require("electron-updater");
+const {ipcMain} = require('electron');
+
 const path = require('path')
 const url = require('url')
 
@@ -39,10 +42,22 @@ function createWindow () {
   })
 }
 
+const log = require('electron-log');
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'debug';
+log.info('App starting.....')
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', function(){
+  createWindow();
+  if(!isDev()){
+    log.info('production mode');
+    //autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdatesAndNotify();
+  }
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -63,3 +78,39 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+// when the update has been downloaded and is ready to be installed, notify the BrowserWindow
+/*
+autoUpdater.on('checking-for-update', () => {
+  mainWindow.webContents.send('checkStart')
+});
+*/
+
+autoUpdater.on('update-available', (info) => {
+  mainWindow.webContents.send('updateAvail')
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  mainWindow.webContents.send('updateNotAvail')
+});
+
+autoUpdater.on('download-progress', (progressInfo) => {
+  mainWindow.webContents.send('progress')
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  mainWindow.webContents.send('updateReady')
+});
+
+autoUpdater.on('error', (err) => {
+  mainWindow.webContents.send('updateErr')
+});
+
+// when receiving a quitAndInstall signal, quit and install the new version ;)
+ipcMain.on("quitAndInstall", (event, arg) => {
+  autoUpdater.quitAndInstall();
+})
+
+function isDev() {
+  return process.mainModule.filename.indexOf('app.asar') === -1;
+}
