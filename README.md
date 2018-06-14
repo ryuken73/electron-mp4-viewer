@@ -39,11 +39,13 @@ npm start
 - Can be captured during playing and paused state
 - Can preview thumbnail and navigate using UIkit thumbnav
 - Captured images and thumbnails are saved same directory media exists
+![Alt Text](https://github.com/ryuken73/electron-mp4-viewer/blob/master/images/capture.jpg)
   
 5. Register FTP Server Info
 - Click Server Name + 
 - Click Add Button and write ftp connection info
 - Click Save Button to save ftp connection informations to chromium localStorage
+![Alt Text](https://github.com/ryuken73/electron-mp4-viewer/blob/master/images/converting.jpg)
 
 6. Upload Media
 - Select Server from Server Configuration Pannel
