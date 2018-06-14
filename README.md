@@ -32,6 +32,7 @@ npm start
 3. Convert Media
 - Click Convert Button
 - Select media type (type can be any format supported by ffmpeg)
+![Alt Text](https://github.com/ryuken73/electron-mp4-viewer/blob/master/images/converting.jpg)
 
 4. Capture Scene
 - Click Capture Button
