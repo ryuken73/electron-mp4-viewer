@@ -45,7 +45,7 @@ npm start
 - Click Server Name + 
 - Click Add Button and write ftp connection info
 - Click Save Button to save ftp connection informations to chromium localStorage
-![Alt Text](https://github.com/ryuken73/electron-mp4-viewer/blob/master/images/converting.jpg)
+![Alt Text](https://github.com/ryuken73/electron-mp4-viewer/blob/master/images/ftpconfig.jpg)
 
 6. Upload Media
 - Select Server from Server Configuration Pannel
