@@ -23,7 +23,7 @@ var errorCallback = function(e) {
   };
 
   // Not showing vendor prefixes.
-  navigator.getUserMedia({video: true, audio: true}, function(localMediaStream) 
+  navigator.getUserMedia({video: true, audio: true}, function(localMediaStream)
     var video = document.querySelector('video');
     video.src = window.URL.createObjectURL(localMediaStream);
 
@@ -40,7 +40,7 @@ var tracer = require('tracer');
 var logLevel = 'trace';
 var logger = tracer.console(
 			{
-				format : "{{timestamp}} [{{title}}][{{method}}] {{message}} (in {{file}}:{{line}})",	
+				format : "{{timestamp}} [{{title}}][{{method}}] {{message}} (in {{file}}:{{line}})",
 				dateformat: 'yyyy-mm-dd HH:MM:ss',
 				level:logLevel,
 				transport : [
@@ -65,10 +65,10 @@ var logger = tracer.console(
 					function(data){
 						mailNotification('error', data);
                     }
-                    */				
+                    */
 				]
 			}
-); 
+);
 
 // converting 중 drop을 막고
 // convert가 끝나면 drop을 푸는 코드
@@ -82,7 +82,7 @@ function enableDropOnBody(){
     d3.selection().on('drop', function(){
 
         d3.event.preventDefault();
-        d3.event.stopPropagation();   
+        d3.event.stopPropagation();
 
         // clear info panels
         var panelArray = [
@@ -149,27 +149,27 @@ d3.select('#convFopen').on('click', function(){
 function disableDropOnBody(){
     d3.selection().on('drop', function(){
         d3.event.preventDefault();
-        d3.event.stopPropagation(); 
+        d3.event.stopPropagation();
     });
 }
 
 // main
 
-// auto update 
+// auto update
 ipcRenderer.on('checkStart', function() {
-    logger.info('update check started!');    
+    logger.info('update check started!');
 })
 
 ipcRenderer.on('updateAvail', function(info) {
-    logger.info('update available : %j', info);    
+    logger.info('update available : %j', info);
 })
 
 ipcRenderer.on('updateNotAvail', function(info) {
-    logger.info('update  Not available : %j', info);    
+    logger.info('update  Not available : %j', info);
 })
 
 ipcRenderer.on('progress', function(progress) {
-    logger.info('update progress : %j', progress);    
+    logger.info('update progress : %j', progress);
 })
 
 ipcRenderer.on('updateReady', function(event, text) {
@@ -195,7 +195,7 @@ ffmpeg.setFfprobePath(path.join(ffmpegPath, ffprobeBin));
 
 d3.selection().on('dragover', function(e){
     d3.event.preventDefault();
-    d3.event.stopPropagation();    
+    d3.event.stopPropagation();
 });
 
 d3.select('#videoPlayer').on('loadstart',function(){
@@ -206,10 +206,10 @@ d3.select('#videoPlayer').on('loadstart',function(){
     d3.select('#capture').attr('disabled',null);
     d3.select('#upload').attr('disabled',null);
     var from = d3.select(this).attr('from');
-    
+
     if(from === 'drop'){
         showModal('메타정보 추출중...');
-        getMeta(fullname,function(err, streamInfo, formatInfo){        
+        getMeta(fullname,function(err, streamInfo, formatInfo){
             hideModal('메타정보 추출완료');
             logger.info(streamInfo);
             logger.info(formatInfo);
@@ -218,13 +218,13 @@ d3.select('#videoPlayer').on('loadstart',function(){
             var beforeformatElement = d3.select('#beforePanelFormat');
 
             putPanelInfo(beforePanelElement, streamInfo);
-            putPanelInfo(beforeformatElement, formatInfo);        
+            putPanelInfo(beforeformatElement, formatInfo);
 
             var origDiv = d3.select('#orig');
             addLoadBtn(origDiv, 'orig');
             enableMainBtn();
             //d3.select('.load-orig').dispatch('click');
-        })    
+        })
     }
 
 })
@@ -232,13 +232,13 @@ d3.select('#videoPlayer').on('loadstart',function(){
 function getMeta(fname,callback){
     ffmpeg.ffprobe(fname, function(err,metadata){
         if(err){
-            logger.error(err);       
-            disableMainBtn();     
+            logger.error(err);
+            disableMainBtn();
         }
 
         var streamInfo = metadata.streams ? metadata.streams : {'streamInfo':'none',};
         var formatInfo = metadata.format ? metadata.format : {'formatInfo':'none',};
-        var streamInfoArray = JSON.stringify(streamInfo[0]).split(',');  
+        var streamInfoArray = JSON.stringify(streamInfo[0]).split(',');
         var formatInfoArray = JSON.stringify(formatInfo).split(',');
         if(formatInfo.nb_streams == 2){
             var streamInfoArray2 = JSON.stringify(streamInfo[1]).split(',');
@@ -248,7 +248,7 @@ function getMeta(fname,callback){
                 streamInfoArray.push(info);
             })
         }
-        
+
         logger.info(streamInfo);
         logger.info(formatInfoArray);
 
@@ -264,7 +264,7 @@ d3.select('#videoPlayer').on('timeupdate', function(){
 d3.select('#videoPlayer').on('error',function(){
     var errCode = d3.event.target.error.code;
     var errMsg = d3.event.target.error.message;
-    //var userMsg = '<span class="uk-text-small">오류 : video loading error : code = ' + errCode + ' , msg = ' + errMsg + '</span>'; 
+    //var userMsg = '<span class="uk-text-small">오류 : video loading error : code = ' + errCode + ' , msg = ' + errMsg + '</span>';
     var userMsg = '오류 : video loading error : code = ' + errCode + ' , msg = ' + errMsg ;
     // error code ref : https://developer.mozilla.org/ko/docs/Web/API/MediaError
     logger.error(userMsg);
@@ -288,7 +288,7 @@ d3.select('#title').on('click', function(){
 d3.select('#upload').on('click', function(){
     logger.info('upload start!')
 
-    var connectionOpts = {};    
+    var connectionOpts = {};
     connectionOpts.host = d3.select('#ip').property('value');
     connectionOpts.user = d3.select('#id').property('value');
     connectionOpts.password = d3.select('#pwd').property('value');
@@ -316,7 +316,7 @@ d3.select('#upload').on('click', function(){
 
     var c = new ftp();
     c.on('ready',function(){
-        
+
         // progress HTML 생성
         d3.select('#progressBody')
         .text('ftp transfer Processed ')
@@ -325,7 +325,7 @@ d3.select('#upload').on('click', function(){
 
         // progress HTML에 cancel button 추가
         d3.select('#procModalBody')
-        .select('p')     
+        .select('p')
         .append('span')
         .append('button')
         .attr('id','cancel')
@@ -393,13 +393,13 @@ d3.select('#upload').on('click', function(){
             }
         })
 
-    })  
+    })
     c.on('error', function(err){
         logger.error(err);
         UIkit.modal('#procModal').hide();
         UKalert(err);
 
-    })  
+    })
     c.connect(connectionOpts)
 })
 
@@ -411,7 +411,7 @@ d3.select('#capture').on('click', function(){
     var extn = path.extname(fullname);
     var base = path.basename(fullname,extn);
     var outputFile = path.join(outPath,base) + '_' + offset + '.png';
-        
+
     // 변환시작 -> 기존 progress 정보 삭제
     d3.select('#progressBody').remove();
 
@@ -427,8 +427,8 @@ d3.select('#capture').on('click', function(){
     .inputOptions(['-ss ' + offset])
     .outputOptions(['-vframes 1'])
     .on('start', function(commandLine) {
-        logger.info('Spawned Ffmpeg with command: ' + commandLine);   
-        UIkit.modal('#procModal').show();        
+        logger.info('Spawned Ffmpeg with command: ' + commandLine);
+        UIkit.modal('#procModal').show();
     })
     .on('progress', function(progress) {
         logger.info('Processing: ' + progress.percent + '% done');
@@ -500,14 +500,14 @@ d3.select('#buttonDelALL').on('click',function(){
     var thumbnails = [];
     var captures =[];
     d3.select('.uk-thumbnav').selectAll('li').selectAll('a').selectAll('img')
-    .select(function(d,i,n){ 
+    .select(function(d,i,n){
         var thumb = d3.select(this).attr('src');
         if(thumb) thumbnails.push(thumb);
     })
 
 
     d3.select('.uk-thumbnav').selectAll('li').selectAll('a')
-    .select(function(d,i,n){ 
+    .select(function(d,i,n){
         var capture = d3.select(this).attr('href');
         if(capture) captures.push(capture)
     })
@@ -518,22 +518,22 @@ d3.select('#buttonDelALL').on('click',function(){
     thumbnails.map(function(thumb){
         fs.unlink(thumb,function(err){
             if(err){
-                logger.error('delete fail : %s', thumb);                
+                logger.error('delete fail : %s', thumb);
             } else {
                 logger.info('delete success : %s', thumb);
             }
-        })        
+        })
     })
-  
+
     captures.map(function(capture){
         fs.unlink(capture,function(err){
             if(err){
-                logger.error('delete fail : %s', capture);                
+                logger.error('delete fail : %s', capture);
             } else {
                 logger.info('delete success : %s', capture);
             }
-        })        
-    })  
+        })
+    })
 
     d3.select('.uk-thumbnav').selectAll('li.thumbnail').remove();
 
@@ -593,14 +593,14 @@ d3.select("#convert").on('click',function(){
 
     // input box 추가
     d3.select('#procModalBody')
-    .select('p')     
-    .append('span')  
+    .select('p')
+    .append('span')
     .append('input')
     .classed('uk-input',true)
     .classed('uk-form-small',true)
     .classed('uk-form-width-xsmall',true)
     .classed('uk-text-center',true)
-    .classed('uk-margin-left',true)    
+    .classed('uk-margin-left',true)
     .attr('id','customExtn')
     .property('value', customExtn)
 
@@ -616,7 +616,7 @@ d3.select("#convert").on('click',function(){
 
     // button 추가
     d3.select('#procModalBody')
-    .select('p')     
+    .select('p')
     .select('div')
     .append('div')
     .classed('uk-width-expand',true)
@@ -627,16 +627,16 @@ d3.select("#convert").on('click',function(){
     .classed('uk-button-primary',true)
     .classed('uk-width-1-1',true)
     .text('확인')
-    .on('click',function(){                
+    .on('click',function(){
         logger.info('select extension done!');
         var changedExtn = d3.select('#customExtn').property('value');
         d3.select('#ext').property('value',changedExtn);
         startConvert();
-    })    
+    })
 
     d3.select('#procModalBody')
-    .select('p')   
-    .select('div')  
+    .select('p')
+    .select('div')
     .append('div')
     .classed('uk-width-expand',true)
     .append('button')
@@ -646,11 +646,11 @@ d3.select("#convert").on('click',function(){
     .classed('uk-button-primary',true)
     .classed('uk-width-1-1',true)
     .text('취소')
-    .on('click',function(){                
+    .on('click',function(){
         logger.info('convert cancel!');
         UIkit.modal('#procModal').hide();
 
-    })    
+    })
 
     UIkit.modal('#procModal').show();
 
@@ -671,7 +671,7 @@ function startConvert(){
 
     // progress HTML에 cancel button 추가
     d3.select('#procModalBody')
-    .select('p')     
+    .select('p')
     .append('span')
     .append('button')
     .attr('id','cancel')
@@ -681,7 +681,7 @@ function startConvert(){
     .classed('uk-position-center-right',true)
     .classed('uk-position-medium', true)
     .text('변환취소')
-   
+
     // output 파일 postfix를 위한 현재 timestamp 구하기
     var now = new Date();
 
@@ -707,9 +707,10 @@ function startConvert(){
     //
 
     logger.info('convert start : %s', origFname);
-    
+
     var command = ffmpeg(origFname)
         .videoCodec('libx264')
+				.audioCodec('copy')
         .on('start', function(commandLine) {
             logger.info('convert start');
             //UIkit.modal('#procModal').show();
@@ -752,10 +753,10 @@ function startConvert(){
             logger.info('Transcoding succeeded !');
             //UIkit.modal('#modalProgress').hide();
             UIkit.modal('#procModal').hide();
-            getMeta(convFname,function(err, streamInfo, formatInfo){              
+            getMeta(convFname,function(err, streamInfo, formatInfo){
                 var beforePanelElement = d3.select('#afterPanelStream');
                 var beforeformatElement = d3.select('#afterPanelFormat');
-        
+
                 putPanelInfo(beforePanelElement, streamInfo);
                 putPanelInfo(beforeformatElement, formatInfo);
 
@@ -764,8 +765,8 @@ function startConvert(){
                 enableMainBtn();
                 addLoadBtn(convDiv,'conv');
                 d3.select('.load-conv').dispatch('click');
-            })   
-            enableDropOnBody();  
+            })
+            enableDropOnBody();
             ipcRenderer.send('progress', {progress : 0, mode:'none'});
         })
         .save(convFname);
@@ -833,8 +834,8 @@ function addLoadBtn(ele, from){
         // set title
         d3.select('#title').text(fullname);
         // load video
-        d3.select('#videoPlayer').attr('src',fullname);    
-        d3.select('#videoPlayer').attr('from',from);  
+        d3.select('#videoPlayer').attr('src',fullname);
+        d3.select('#videoPlayer').attr('from',from);
         // change active button color and text
         var origBtnClass = 'load-orig';
         var convBtnClass = 'load-conv';
@@ -842,13 +843,13 @@ function addLoadBtn(ele, from){
         .classed('uk-button-default',false)
         .classed('uk-button-secondary',true)
         .text('Loaded');
-        
+
         // toggle previous loaded button
         var prevBtnClass = btnClass == origBtnClass ? convBtnClass : origBtnClass;
         d3.select('.' + prevBtnClass)
         .classed('uk-button-secondary',false)
         .classed('uk-button-default',true)
-        .text('Load');       
+        .text('Load');
     })
 }
 
@@ -1116,13 +1117,13 @@ function readRows(){
                 var checked = d3.select(this).property('checked')
                 serverConfigs.push({'checked':checked});
                 index = serverConfigs.length - 1;
-            } else {            
-                // add connection info on n'th server object  
+            } else {
+                // add connection info on n'th server object
                 var colname = d3.select(this).attr('column');
                 var value = d3.select(this).property('value');
                 serverConfigs[index][colname] = value;
             }
-        })   
+        })
     })
 
     logger.info(serverConfigs);
@@ -1131,7 +1132,7 @@ function readRows(){
 }
 
 function insertRows(serverConfigs){
-    
+
     logger.info('save serverinfo : %j',serverConfigs);
     serverConfigs.map(function(server){
         var k = server.servername;
@@ -1144,6 +1145,6 @@ function insertRows(serverConfigs){
         }
         var vString = JSON.stringify(v)
         localStorage.setItem(k, vString);
-        logger.info('save success! : %j', server);       
+        logger.info('save success! : %j', server);
     })
 }
